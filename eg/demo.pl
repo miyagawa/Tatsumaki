@@ -49,4 +49,9 @@ my $app = Tatsumaki::Application->new([
     '/' => 'MainHandler',
 ]);
 
-Tatsumaki::Server->new(port => 9999)->run($app);
+if (__FILE__ eq $0) {
+    Tatsumaki::Server->new(port => 9999)->run($app);
+} else {
+    return $app->psgi_app;
+}
+

@@ -32,8 +32,15 @@ sub run {
     my $self = shift;
     my $method = lc $self->request->method;
     # TODO supported_methods
-    $self->$method(@{$self->args});
-    $self->finish unless $self->is_nonblocking;
+    if ($self->is_nonblocking) {
+        my $cv = AE::cv;
+        $self->condvar($cv);
+        $self->$method(@{$self->args});
+    } else {
+        $self->$method(@{$self->args});
+        $self->flush;
+        return $self->response->finalize;
+    }
 }
 
 sub write {
@@ -43,7 +50,6 @@ sub write {
 
 sub flush {
     my $self = shift;
-    # FIXME do something else in non-blocking
     my $body = $self->response->body || [];
     push @$body, @{$self->_write_buffer};
     $self->_write_buffer([]);
@@ -53,7 +59,9 @@ sub flush {
 sub finish {
     my $self = shift;
     $self->flush;
-    $self->condvar->send($self->response->finalize);
+    if ($self->condvar) {
+        $self->condvar->send($self->response->finalize);
+    }
 }
 
 no Moose;

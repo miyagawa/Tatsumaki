@@ -53,7 +53,6 @@ sub psgi_app {
     return sub {
         my $env = shift;
         my $req = Plack::Request->new($env);
-        my $cv  = AE::cv;
 
         my $dispatch = $self->_dispatcher->dispatch($req->path);
         unless ($dispatch->has_matches) {
@@ -61,19 +60,16 @@ sub psgi_app {
         }
 
         # TODO if you throw exception from nonblocking callback, there seems no way to catch it
-        $dispatch->run(sub {
+        return $dispatch->run(sub {
             my $handler = shift;
             my $context = $handler->new(
                 application => $self,
                 handler => $handler,
                 request => $req,
                 args    => [ @_ ],
-                condvar => $cv,
             );
             $context->run;
         });
-
-        return $cv;
     };
 }
 
