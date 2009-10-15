@@ -13,7 +13,7 @@ __END__
 
 =head1 NAME
 
-Tatsumaki - Non-blocking Web server and framework based on AnyEvent and PSGI
+Tatsumaki - Non-blocking Web server and framework based on AnyEvent
 
 =head1 SYNOPSIS
 
@@ -60,11 +60,18 @@ Tatsumaki - Non-blocking Web server and framework based on AnyEvent and PSGI
       '/' => 'MainHandler',
   ]);
 
-  Tatsumaki::Server->new(port => 9999)->run($app);
+  if (__FILE__ eq $0) {
+      Tatsumaki::Server->new(port => 9999)->run($app);
+  } else {
+      return $app->psgi_app;
+  }
 
 =head1 DESCRIPTION
 
-Tatsumaki is a toy port of Tornado for Perl using PSGI and AnyEvent.
+Tatsumaki is a toy port of Tornado for Perl using PSGI (with
+non-blocking extensions) and AnyEvent. Note that this is not a serious
+port but an experiment to see how non-blocking apps can be implemented
+in PSGI compatible web servers and frameworks.
 
 =head1 AUTHOR
 
