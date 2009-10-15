@@ -1,0 +1,63 @@
+NAME
+    Tatsumaki - Non-blocking Web server and framework based on AnyEvent and
+    PSGI
+
+SYNOPSIS
+      use Tatsumaki;
+      use Tatsumaki::Error;
+      use Tatsumaki::Application;
+      use Tatsumaki::HTTPClient;
+      use Tatsumaki::Server;
+      use JSON;
+
+      package MainHandler;
+      use base qw(Tatsumaki::Handler);
+
+      sub get {
+          my $self = shift;
+          $self->write("Hello World");
+      }
+
+      package SearchHandler;
+      use base qw(Tatsumaki::Handler);
+
+      __PACKAGE__->nonblocking(1);
+
+      sub get {
+          my($self, $query) = @_;
+          my $client = Tatsumaki::HTTPClient->new;
+          $client->get("http://friendfeed-api.com/v2/feed/$query", sub { $self->on_response(@_) });
+      }
+
+      sub on_response {
+          my($self, $res) = @_;
+          if ($res->is_error) {
+              Tatsumaki::Error::HTTP->throw(500);
+          }
+          my $json = JSON::decode_json($res->content);
+          $self->write("Fetched " . scalar(@{$json->{entries}}) . " entries from API");
+          $self->finish;
+      }
+
+      package main;
+
+      my $app = Tatsumaki::Application->new([
+          '/feed/(\w+)' => 'SearchHandler',
+          '/' => 'MainHandler',
+      ]);
+
+      Tatsumaki::Server->new(port => 9999)->run($app);
+
+DESCRIPTION
+    Tatsumaki is a toy port of Tornado for Perl using PSGI and AnyEvent.
+
+AUTHOR
+    Tatsuhiko Miyagawa <miyagawa@bulknews.net>
+
+LICENSE
+    This library is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself.
+
+SEE ALSO
+    AnyEvent Plack PSGI <http://www.tornadoweb.org/>
+

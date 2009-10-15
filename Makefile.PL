@@ -1,0 +1,18 @@
+use inc::Module::Install;
+name 'Tatsumaki';
+all_from 'lib/Tatsumaki.pm';
+readme_from 'lib/Tatsumaki.pm';
+requires 'AnyEvent';
+requires 'AnyEvent::HTTP';
+requires 'Moose';
+requires 'Path::Dispatcher';
+requires 'Plack';
+requires 'Throwable';
+requires 'JSON';
+build_requires 'Test::More';
+use_test_base;
+auto_include_deps;
+auto_install;
+author_tests('xt');
+auto_set_repository;
+WriteAll;
