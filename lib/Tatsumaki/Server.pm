@@ -128,9 +128,9 @@ sub _response_handler {
         # PSGI standard
         if (ref $res eq 'ARRAY') {
             $self->_write_response($res, $handle, $sock);
-        } elsif (Scalar::Util::blessed($res) && $res->can('cb')) {
-            $res->cb(sub {
-                my $res = $res->recv;
+        } elsif (ref $res eq 'CODE') {
+            $res->(sub {
+                my $res = shift;
                 $self->_write_response($res, $handle, $sock);
             });
         } else {
@@ -147,7 +147,11 @@ sub _write_response {
     my $body = $res->[2];
     my $disconnect_cb = sub { $handle->on_drain(sub { $handle->destroy }) };
 
-    if ( ref $body eq 'GLOB' ) {
+    if (!defined $body) {
+        return Plack::Util::inline_object
+            write => sub { $handle->push_write($_) for @_ },
+            close => $disconnect_cb;
+    } elsif ( ref $body eq 'GLOB' ) {
         no warnings 'recursion';
         $handle->on_drain(sub {
             my $read = $body->read(my $buf, 4096);

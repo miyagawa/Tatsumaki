@@ -8,6 +8,7 @@ has condvar  => (is => 'rw', isa => 'AnyEvent::CondVar');
 has request  => (is => 'rw', isa => 'Plack::Request');
 has response => (is => 'rw', isa => 'Plack::Response', lazy_build => 1);
 has args     => (is => 'rw', isa => 'ArrayRef');
+has writer   => (is => 'rw');
 
 has _write_buffer => (is => 'rw', isa => 'ArrayRef', lazy => 1, default => sub { [] });
 
@@ -36,12 +37,35 @@ sub run {
         my $cv = AE::cv;
         $self->condvar($cv);
         $self->$method(@{$self->args});
-        return $cv;
+        return sub {
+            my $start_response = shift;
+            $cv->cb(sub {
+                my $w = $start_response->(shift->recv);
+                $self->writer($w) if $w;
+            });
+        };
     } else {
         $self->$method(@{$self->args});
         $self->flush;
         return $self->response->finalize;
     }
+}
+
+sub init_writer {
+    my $self = shift;
+    $self->flush;
+    my $res = $self->response->finalize;
+    delete $res->[2]; # gimme a writer
+    $self->condvar->send($res);
+    $self->writer;
+}
+
+sub stream_write {
+    my $self = shift;
+    my $writer = $self->writer || $self->init_writer;
+
+    my @buf = map Encode::encode_utf8($_), @_;
+    $writer->write(@buf);
 }
 
 sub write {
@@ -60,7 +84,9 @@ sub flush {
 sub finish {
     my $self = shift;
     $self->flush;
-    if ($self->condvar) {
+    if ($self->writer) {
+        $self->writer->close;
+    } elsif ($self->condvar) {
         $self->condvar->send($self->response->finalize);
     }
 }
