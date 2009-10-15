@@ -36,6 +36,7 @@ sub run {
         my $cv = AE::cv;
         $self->condvar($cv);
         $self->$method(@{$self->args});
+        return $cv;
     } else {
         $self->$method(@{$self->args});
         $self->flush;
