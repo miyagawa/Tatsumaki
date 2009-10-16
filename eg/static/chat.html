@@ -68,8 +68,9 @@ img.avatar {
 </style>
 </head>
 <body>
+<!-- move this input out of form so Firefox can submit with enter key :/ -->
+Your email (for Gravatar): <input id="email" type="text" name="email" size="24"/>
 <form onsubmit="return doPost($('#email'), $('#chat'))">
-Your email (for Gravatar): <input id="email" type="text" name="email" size="24"/><br />
 Something to say: <input id="chat" type="text" size="32"/>
 </form>
 
