@@ -3,6 +3,7 @@ use strict;
 use Carp ();
 use Encode ();
 use Moose;
+use JSON;
 use Tatsumaki::Error;
 
 has application => (is => 'rw', isa => 'Tatsumaki::Application');
@@ -62,18 +63,24 @@ sub get_writer {
     return $self->writer;
 }
 
+sub get_chunk {
+    my $self = shift;
+    if (ref $_[0]) {
+        $self->response->content_type('application/json');
+        return JSON::encode_json($_[0]);
+    } else {
+        join '', map Encode::encode_utf8($_), @_;
+    }
+}
+
 sub stream_write {
     my $self = shift;
-    my $writer = $self->get_writer;
-
-    my @buf = map Encode::encode_utf8($_), @_;
-    $writer->write(join '', @buf);
+    $self->get_writer->write($self->get_chunk(@_));
 }
 
 sub write {
     my $self = shift;
-    my @buf = map Encode::encode_utf8($_), @_;
-    push @{$self->_write_buffer}, @buf;
+    push @{$self->_write_buffer}, $self->get_chunk(@_);
 }
 
 sub flush {
