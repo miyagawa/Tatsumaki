@@ -65,7 +65,7 @@ sub stream_write {
     my $writer = $self->writer || $self->init_writer;
 
     my @buf = map Encode::encode_utf8($_), @_;
-    $writer->write(@buf);
+    $writer->write(join '', @buf);
 }
 
 sub write {
