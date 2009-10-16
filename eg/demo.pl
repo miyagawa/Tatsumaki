@@ -26,7 +26,7 @@ sub get {
 
     my $try = 0;
     my $t; $t = AE::timer 0, 0.1, sub {
-        $self->stream_write("Current UNIX time is ", time, "\n");
+        $self->stream_write("Current UNIX time is " . time . "\n");
         if ($try++ >= 10) {
             undef $t;
             $self->finish;

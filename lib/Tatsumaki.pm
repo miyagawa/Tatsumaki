@@ -21,7 +21,6 @@ Tatsumaki - Non-blocking Web server and framework based on AnyEvent
   use Tatsumaki::Application;
   use Tatsumaki::HTTPClient;
   use Tatsumaki::Server;
-  use JSON;
 
   package MainHandler;
   use base qw(Tatsumaki::Handler);
@@ -33,8 +32,9 @@ Tatsumaki - Non-blocking Web server and framework based on AnyEvent
 
   package FeedHandler;
   use base qw(Tatsumaki::Handler);
-
   __PACKAGE__->nonblocking(1);
+
+  use JSON;
 
   sub get {
       my($self, $query) = @_;
@@ -56,13 +56,15 @@ Tatsumaki - Non-blocking Web server and framework based on AnyEvent
   use base qw(Tatsumaki::Handler);
   __PACKAGE__->nonblocking(1);
 
+  use AnyEvent;
+
   sub get {
       my $self = shift;
       $self->response->content_type('text/plain');
 
       my $try = 0;
       my $t; $t = AE::timer 0, 0.1, sub {
-          $self->stream_write("Current UNIX time is ", time, "\n");
+          $self->stream_write("Current UNIX time is " . time . "\n");
           if ($try++ >= 10) {
               undef $t;
               $self->finish;
