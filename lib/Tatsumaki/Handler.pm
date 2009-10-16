@@ -87,6 +87,7 @@ sub flush {
         my $res = $self->response->finalize;
         delete $res->[2]; # gimme a writer
         $self->condvar->send($res);
+        $self->writer or Carp::croak("Can't get writer object back");
         $self->flush();
     }
 }
