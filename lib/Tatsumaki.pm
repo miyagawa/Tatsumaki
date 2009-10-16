@@ -17,7 +17,6 @@ Tatsumaki - Non-blocking Web server and framework based on AnyEvent
 
 =head1 SYNOPSIS
 
-  use Tatsumaki;
   use Tatsumaki::Error;
   use Tatsumaki::Application;
   use Tatsumaki::HTTPClient;
@@ -32,7 +31,7 @@ Tatsumaki - Non-blocking Web server and framework based on AnyEvent
       $self->write("Hello World");
   }
 
-  package SearchHandler;
+  package FeedHandler;
   use base qw(Tatsumaki::Handler);
 
   __PACKAGE__->nonblocking(1);
@@ -53,10 +52,29 @@ Tatsumaki - Non-blocking Web server and framework based on AnyEvent
       $self->finish;
   }
 
+  package StreamWriter;
+  use base qw(Tatsumaki::Handler);
+  __PACKAGE__->nonblocking(1);
+
+  sub get {
+      my $self = shift;
+      $self->response->content_type('text/plain');
+
+      my $try = 0;
+      my $t; $t = AE::timer 0, 0.1, sub {
+          $self->stream_write("Current UNIX time is ", time, "\n");
+          if ($try++ >= 10) {
+              undef $t;
+              $self->finish;
+          }
+      };
+  }
+
   package main;
 
   my $app = Tatsumaki::Application->new([
-      '/feed/(\w+)' => 'SearchHandler',
+      '/stream' => 'StreamWriter',
+      '/feed/(\w+)' => 'FeedHandler',
       '/' => 'MainHandler',
   ]);
 
@@ -69,9 +87,17 @@ Tatsumaki - Non-blocking Web server and framework based on AnyEvent
 =head1 DESCRIPTION
 
 Tatsumaki is a toy port of Tornado for Perl using PSGI (with
-non-blocking extensions) and AnyEvent. Note that this is not a serious
-port but an experiment to see how non-blocking apps can be implemented
-in PSGI compatible web servers and frameworks.
+non-blocking extensions) and AnyEvent.
+
+Note that this is not a serious port but an experiment to see how
+non-blocking apps can be implemented in PSGI compatible web servers
+and frameworks.
+
+=head1 PSGI COMPATIBILITY
+
+When C<nonblocking> is set in your application, you need a PSGI server
+backend that supports C<psgi.streaming> response style, which is a
+callback that starts the response and gives you back the writer object.
 
 =head1 AUTHOR
 
