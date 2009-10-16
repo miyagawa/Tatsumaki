@@ -3,31 +3,42 @@ use strict;
 use Moose;
 
 has channel => (is => 'rw', isa => 'Str');
+has backlog => (is => 'rw', isa => 'ArrayRef', default => sub { [] });
+has waiters => (is => 'rw', isa => 'ArrayRef', default => sub { [] });
 
-my $waiters = {}; # channel => \@waiters
+our $BacklogLength = 30; # TODO configurable
 
-around BUILDARGS => sub {
-    my $orig  = shift;
-    my $class = shift;
-    $class->$orig(channel => $_[0]);
-};
+my %instances;
 
-sub waiters {
-    my $self = shift;
-    return $waiters->{$self->channel} ||= [];
+sub instance {
+    my($class, $name) = @_;
+    $instances{$name} ||= $class->new(channel => $name);
 }
 
 sub clear_waiters {
     my $self = shift;
-    $waiters->{$self->channel} = [];
+    $self->waiters([]);
+}
+
+sub append_backlog {
+    my($self, @events) = @_;
+    my @new_backlog = (reverse(@events), @{$self->backlog});
+    $self->backlog([ splice @new_backlog, 0, $BacklogLength ]);
+}
+
+sub poll_backlog {
+    my($self, $length, $cb) = @_;
+    my @events = grep defined, @{$self->backlog}[0..$length-1];
+    $cb->(reverse @events);
 }
 
 sub publish {
-    my $self = shift;
+    my($self, @events) = @_;
     for my $w (@{$self->waiters}) {
-        $w->send(@_);
+        $w->send(@events);
     }
-    $self->clear_waiters;
+    $self->append_backlog(@events);
+    $self->waiters([]);
 }
 
 sub poll {

@@ -35,6 +35,17 @@ $(function(){
   $.ev.loop('/chat/poll?' + Math.random());
   if ($.cookie(cookieName))
     $('#email').attr('value', $.cookie(cookieName));
+  $.ajax({
+    url: '/chat/backlog',
+    method: 'get',
+    dataType: 'json',
+    success: function(r) {
+    console.log(r);
+      $.each(r, function(i, e) {
+        $.ev.handlers.message(e);
+      });
+    }
+  });
 });
 </script>
 <style>

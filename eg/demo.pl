@@ -67,7 +67,7 @@ use Tatsumaki::MessageQueue;
 
 sub get {
     my $self = shift;
-    my $mq = Tatsumaki::MessageQueue->new('Chat');
+    my $mq = Tatsumaki::MessageQueue->instance('Chat');
     $mq->poll(sub { $self->on_new_event(@_) });
 }
 
@@ -85,12 +85,26 @@ sub post {
     # TODO: decode should be done in the framework or middleware
     my $text  = Encode::decode_utf8($self->request->param('text'));
     my $email = $self->request->param('email');
-    my $mq = Tatsumaki::MessageQueue->new('Chat');
+    my $mq = Tatsumaki::MessageQueue->instance('Chat');
     $mq->publish({
         type => "message", text => $text, email => $email,
         address => $self->request->address, time => scalar localtime(time),
     });
     $self->write({ success => 1 });
+}
+
+package ChatBacklogHandler;
+use base qw(Tatsumaki::Handler);
+__PACKAGE__->nonblocking(1);
+
+sub get {
+    my $self = shift;
+    my $mq = Tatsumaki::MessageQueue->instance('Chat');
+    $mq->poll_backlog(20, sub {
+        my @events = @_;
+        $self->write(\@events);
+        $self->finish;
+    });
 }
 
 package main;
@@ -100,6 +114,7 @@ my $app = Tatsumaki::Application->new([
     '/feed/(\w+)' => 'FeedHandler',
     '/chat/poll'  => 'ChatPollHandler',
     '/chat/post'  => 'ChatPostHandler',
+    '/chat/backlog' => 'ChatBacklogHandler',
     '/' => 'MainHandler',
 ]);
 
