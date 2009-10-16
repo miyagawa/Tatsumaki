@@ -25,8 +25,9 @@ function doPost(eml, el) {
 
 $(function(){
   $.ev.handlers.message = function(e) {
-    var img = $('<img/>').attr('src', "http://www.gravatar.com/avatar/" + $.md5(e.email))
-      .attr('alt', e.email).addClass('avatar');
+    var avatar = e.avatar || ("http://www.gravatar.com/avatar/" + $.md5(e.email));
+    var name   = e.name   || e.email;
+    var img = $('<img/>').attr('src', avatar).attr('alt', name).addClass('avatar');
     $('#messages').prepend(
       $('<li class="message"/>').text(e.text).prepend(img)
         .append($('<span/>').addClass('meta').text(' (' + e.time + ' from ' + e.address + ')'))
@@ -40,7 +41,6 @@ $(function(){
     method: 'get',
     dataType: 'json',
     success: function(r) {
-    console.log(r);
       $.each(r, function(i, e) {
         $.ev.handlers.message(e);
       });
