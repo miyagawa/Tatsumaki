@@ -68,6 +68,7 @@ sub stream_write {
     $writer->write(join '', @buf);
 }
 
+# TODO buffering write maybe supported in Plack::Response, or maybe Tatsumaki::Response
 sub write {
     my $self = shift;
     push @{$self->_write_buffer}, map Encode::encode_utf8($_), @_;
