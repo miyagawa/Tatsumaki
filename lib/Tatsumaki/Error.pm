@@ -9,11 +9,13 @@ use HTTP::Status;
 extends 'Tatsumaki::Error';
 
 has code => (is => 'rw', isa => 'Int');
+has message => (is => 'rw', isa => 'Str');
 
 around BUILDARGS => sub {
     my $orig = shift;
-    my($class, $code) = @_;
-    $class->$orig(code => $code);
+    my($class, $code, $msg) = @_;
+    $msg ||= HTTP::Status::status_message($code);
+    $class->$orig(code => $code, message => $msg);
 };
 
 package Tatsumaki::Error;

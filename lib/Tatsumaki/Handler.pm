@@ -3,6 +3,7 @@ use strict;
 use Carp ();
 use Encode ();
 use Moose;
+use Tatsumaki::Error;
 
 has application => (is => 'rw', isa => 'Tatsumaki::Application');
 has condvar  => (is => 'rw', isa => 'AnyEvent::CondVar');
@@ -35,6 +36,9 @@ sub run {
     my $method = lc $self->request->method;
     # TODO supported_methods
     if ($self->is_nonblocking) {
+        unless ($self->request->env->{'psgi.streaming'}) {
+            Tatsumaki::Error::HTTP->throw(500); #, "nonblocking handlers need PSGI servers that support psgi.streaming");
+        }
         my $cv = AE::cv;
         $self->condvar($cv);
         $self->$method(@{$self->args});

@@ -59,7 +59,8 @@ sub psgi_app {
             return [ 404, [ 'Content-Type' => 'text/html' ], [ "404 Not Found" ] ];
         }
 
-        # TODO if you throw exception from nonblocking callback, there seems no way to catch it
+        # TODO: if you throw exception from nonblocking callback, there seems no way to catch it
+        # TODO: Path::Dispatcher::Dispatch->run does eval/die so stacktrace gets useless
         return $dispatch->run(sub {
             my $handler = shift;
             my $context = $handler->new(
