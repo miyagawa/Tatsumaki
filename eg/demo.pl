@@ -95,7 +95,8 @@ use base qw(Tatsumaki::Handler);
 
 sub post {
     my $self = shift;
-    my $text = $self->request->param('text');
+    # TODO: decode should be done in the framework or middleware
+    my $text = Encode::decode_utf8($self->request->param('text'));
     $pub->({ type => "message", text => $text });
     $self->write({ success => 1 });
 }
