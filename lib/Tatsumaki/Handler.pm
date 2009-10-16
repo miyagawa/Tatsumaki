@@ -1,6 +1,7 @@
 package Tatsumaki::Handler;
 use strict;
-use Encode;
+use Carp ();
+use Encode ();
 use Moose;
 
 has application => (is => 'rw', isa => 'Tatsumaki::Application');
@@ -51,35 +52,43 @@ sub run {
     }
 }
 
-sub init_writer {
+sub get_writer {
     my $self = shift;
-    $self->flush;
-    my $res = $self->response->finalize;
-    delete $res->[2]; # gimme a writer
-    $self->condvar->send($res);
-    $self->writer;
+    $self->flush unless $self->writer;
+    return $self->writer;
 }
 
 sub stream_write {
     my $self = shift;
-    my $writer = $self->writer || $self->init_writer;
+    my $writer = $self->get_writer;
 
     my @buf = map Encode::encode_utf8($_), @_;
     $writer->write(join '', @buf);
 }
 
-# TODO buffering write maybe supported in Plack::Response, or maybe Tatsumaki::Response
 sub write {
     my $self = shift;
-    push @{$self->_write_buffer}, map Encode::encode_utf8($_), @_;
+    my @buf = map Encode::encode_utf8($_), @_;
+    push @{$self->_write_buffer}, @buf;
 }
 
 sub flush {
     my $self = shift;
-    my $body = $self->response->body || [];
-    push @$body, @{$self->_write_buffer};
-    $self->_write_buffer([]);
-    $self->response->body($body);
+
+    if (!$self->is_nonblocking) {
+        my $body = $self->response->body || [];
+        push @$body, @{$self->_write_buffer};
+        $self->_write_buffer([]);
+        $self->response->body($body);
+    } elsif ($self->writer) {
+        $self->writer->write($_) for @{$self->_write_buffer};
+        $self->_write_buffer([]);
+    } else {
+        my $res = $self->response->finalize;
+        delete $res->[2]; # gimme a writer
+        $self->condvar->send($res);
+        $self->flush();
+    }
 }
 
 sub finish {
