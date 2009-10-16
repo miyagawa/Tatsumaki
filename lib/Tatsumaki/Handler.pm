@@ -103,7 +103,6 @@ sub finish {
     if ($self->writer) {
         $self->writer->close;
     } elsif ($self->condvar) {
-        # TODO set Content-Length
         $self->condvar->send($self->response->finalize);
     }
 }
