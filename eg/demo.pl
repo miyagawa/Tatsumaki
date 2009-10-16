@@ -55,7 +55,7 @@ sub on_response {
     $self->response->content_type('text/html;charset=utf-8');
     $self->write("<p>Fetched " . scalar(@{$json->{entries}}) . " entries from API</p>");
     for my $entry (@{$json->{entries}}) {
-        $self->write("<li>" . $entry->{body} . "</li>");
+        $self->write("<li>" . $entry->{body} . "</li>\n");
     }
     $self->finish;
 }
