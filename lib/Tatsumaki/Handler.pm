@@ -78,15 +78,16 @@ sub write {
 
 sub flush {
     my $self = shift;
+    my($is_final) = @_;
 
-    if (!$self->is_nonblocking) {
+    if ($self->writer) {
+        $self->writer->write(join '', @{$self->_write_buffer});
+        $self->_write_buffer([]);
+    } elsif (!$self->is_nonblocking || $is_final) {
         my $body = $self->response->body || [];
         push @$body, @{$self->_write_buffer};
         $self->_write_buffer([]);
         $self->response->body($body);
-    } elsif ($self->writer) {
-        $self->writer->write(join '', @{$self->_write_buffer});
-        $self->_write_buffer([]);
     } else {
         my $res = $self->response->finalize;
         delete $res->[2]; # gimme a writer
@@ -98,7 +99,7 @@ sub flush {
 
 sub finish {
     my $self = shift;
-    $self->flush;
+    $self->flush(1);
     if ($self->writer) {
         $self->writer->close;
     } elsif ($self->condvar) {
