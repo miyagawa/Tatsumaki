@@ -37,7 +37,7 @@ sub run {
     # TODO supported_methods
     if ($self->is_nonblocking) {
         unless ($self->request->env->{'psgi.streaming'}) {
-            Tatsumaki::Error::HTTP->throw(500); #, "nonblocking handlers need PSGI servers that support psgi.streaming");
+            Tatsumaki::Error::HTTP->throw(500, "nonblocking handlers need PSGI servers that support psgi.streaming");
         }
         my $cv = AE::cv;
         $self->condvar($cv);

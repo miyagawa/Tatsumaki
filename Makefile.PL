@@ -5,7 +5,6 @@ readme_from 'lib/Tatsumaki.pm';
 requires 'AnyEvent';
 requires 'AnyEvent::HTTP';
 requires 'Moose';
-requires 'Path::Dispatcher';
 requires 'Plack';
 requires 'Plack::Request';
 requires 'Throwable';

@@ -48,7 +48,7 @@ sub get {
 sub on_response {
     my($self, $res) = @_;
     if ($res->is_error) {
-        Tatsumaki::Error::HTTP->throw(500);
+        Tatsumaki::Error::HTTP->throw(500, $res->status_line);
     }
     my $json = JSON::decode_json($res->content);
 

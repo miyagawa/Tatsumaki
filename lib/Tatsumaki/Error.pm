@@ -8,6 +8,7 @@ use Moose;
 use HTTP::Status;
 extends 'Tatsumaki::Error';
 
+use overload q("") => sub { $_[0]->message }, fallback => 1;
 has code => (is => 'rw', isa => 'Int');
 has message => (is => 'rw', isa => 'Str');
 
