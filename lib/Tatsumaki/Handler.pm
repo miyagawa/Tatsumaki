@@ -81,7 +81,7 @@ sub flush {
         $self->_write_buffer([]);
         $self->response->body($body);
     } elsif ($self->writer) {
-        $self->writer->write($_) for @{$self->_write_buffer};
+        $self->writer->write(join '', @{$self->_write_buffer});
         $self->_write_buffer([]);
     } else {
         my $res = $self->response->finalize;
