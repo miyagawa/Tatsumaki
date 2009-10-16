@@ -15,11 +15,6 @@ sub instance {
     $instances{$name} ||= $class->new(channel => $name);
 }
 
-sub clear_waiters {
-    my $self = shift;
-    $self->waiters([]);
-}
-
 sub append_backlog {
     my($self, @events) = @_;
     my @new_backlog = (reverse(@events), @{$self->backlog});
@@ -43,6 +38,8 @@ sub publish {
 
 sub poll {
     my $self = shift;
+    # FIXME If publish happens between poll -> poll then the events doesn't get delivered
+    # poll should first check if there's anything left for this client
     my $cb = shift;
     my $cv = AE::cv;
     $cv->cb(sub { $cb->($_[0]->recv) });
