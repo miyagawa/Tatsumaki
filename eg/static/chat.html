@@ -3,12 +3,18 @@
 <title>Tatsumaki Chat demo</title>
 <script src="/static/jquery-1.3.2.min.js"></script>
 <script src="/static/jquery.ev.js"></script>
+<script src="/static/jquery.md5.js"></script>
+<script src="/static/jquery.cookie.js"></script>
 <script>
-function doPost(el) {
+var cookieName = 'tatsumaki_chat_email';
+function doPost(eml, el) {
+  var email = eml.attr('value');
+  if (email) $.cookie(cookieName, email);
   var text = el.attr('value');
+  if (!text) return false;
   $.ajax({
     url: "/chat/post",
-    data: { text: text },
+    data: { email: email, text: text },
     type: 'post',
     dataType: 'json',
     success: function(r) { }
@@ -19,16 +25,45 @@ function doPost(el) {
 
 $(function(){
   $.ev.handlers.message = function(e) {
-    $('#messages').append($('<li class="message"/>').text(e.text));
+    var img = $('<img/>').attr('src', "http://www.gravatar.com/avatar/" + $.md5(e.email))
+      .attr('alt', e.email).addClass('avatar');
+    $('#messages').prepend(
+      $('<li class="message"/>').text(e.text).prepend(img)
+        .append($('<span/>').addClass('meta').text(' (' + e.time + ' from ' + e.address + ')'))
+    );
   }
   $.ev.loop('/chat/poll?' + Math.random());
+  if ($.cookie(cookieName))
+    $('#email').attr('value', $.cookie(cookieName));
 });
 </script>
+<style>
+ul#messages {
+  list-style-type: none;
+  padding-left: 1em;
+}
+img.avatar {
+  width: 25px; height: 25px;
+  vertical-align: middle;
+  margin-right: 0.5em;
+}
+.message {
+  margin-top: 0.5em;
+}
+.meta {
+  color: #888;
+  font-size: 0.8em;
+}
+</style>
 </head>
 <body>
-<form onsubmit="return doPost($('#chat'))">
+<form onsubmit="return doPost($('#email'), $('#chat'))">
+Your email (for Gravatar): <input id="email" type="text" name="email" size="24"/><br />
 Something to say: <input id="chat" type="text" size="32"/>
 </form>
 
 <ul id="messages">
 </ul>
+
+</body>
+</html>

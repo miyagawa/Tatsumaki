@@ -83,9 +83,13 @@ use base qw(Tatsumaki::Handler);
 sub post {
     my $self = shift;
     # TODO: decode should be done in the framework or middleware
-    my $text = Encode::decode_utf8($self->request->param('text'));
+    my $text  = Encode::decode_utf8($self->request->param('text'));
+    my $email = $self->request->param('email');
     my $mq = Tatsumaki::MessageQueue->new('Chat');
-    $mq->publish({ type => "message", text => $text });
+    $mq->publish({
+        type => "message", text => $text, email => $email,
+        address => $self->request->address, time => scalar localtime(time),
+    });
     $self->write({ success => 1 });
 }
 
