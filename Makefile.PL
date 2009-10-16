@@ -7,6 +7,7 @@ requires 'AnyEvent::HTTP';
 requires 'Moose';
 requires 'Path::Dispatcher';
 requires 'Plack';
+requires 'Plack::Request';
 requires 'Throwable';
 requires 'JSON';
 build_requires 'Test::More';
