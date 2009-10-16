@@ -79,10 +79,21 @@ DESCRIPTION
     non-blocking apps can be implemented in PSGI compatible web servers and
     frameworks.
 
+TATSUMAKI?
+    Tatsumaki is a Japanese for Tornado. Also, it might sound familiar from
+    "Tatsumaki Senpuukyaku" of Ryu from Street Fighter II if you loved the
+    Capcom videogame back in the day :)
+
 PSGI COMPATIBILITY
-    When "nonblocking" is set in your application, you need a PSGI server
-    backend that supports "psgi.streaming" response style, which is a
+    When "nonblocking" is declared in your application, you need a PSGI
+    server backend that supports "psgi.streaming" response style, which is a
     callback that starts the response and gives you back the writer object.
+    Currently AnyEvent and Coro backend supports this option, or you can use
+    Plack::Middleware::Writer middleware to fallback in non-supported
+    environments.
+
+    If "nonblocking" is not used, your application is supposed to run in any
+    PSGI standard environments.
 
 AUTHOR
     Tatsuhiko Miyagawa <miyagawa@bulknews.net>
