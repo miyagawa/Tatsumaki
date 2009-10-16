@@ -59,29 +59,16 @@ sub on_response {
     $self->finish;
 }
 
-# super-simple comet long-poll
-# TODO this should be a base-class or util
-my $waiters = [];
-my $pub = sub {
-    for my $w (@$waiters) {
-        $w->send(@_);
-    }
-    $waiters = [];
-};
-my $sub = sub {
-    my $cb = shift;
-    my $cv = AE::cv;
-    $cv->cb(sub { $cb->(shift->recv) });
-    push @$waiters, $cv;
-};
-
 package ChatPollHandler;
 use base qw(Tatsumaki::Handler);
 __PACKAGE__->nonblocking(1);
 
+use Tatsumaki::MessageQueue;
+
 sub get {
     my $self = shift;
-    $sub->(sub { $self->on_new_event(@_) });
+    my $mq = Tatsumaki::MessageQueue->new('Chat');
+    $mq->poll(sub { $self->on_new_event(@_) });
 }
 
 sub on_new_event {
@@ -97,7 +84,8 @@ sub post {
     my $self = shift;
     # TODO: decode should be done in the framework or middleware
     my $text = Encode::decode_utf8($self->request->param('text'));
-    $pub->({ type => "message", text => $text });
+    my $mq = Tatsumaki::MessageQueue->new('Chat');
+    $mq->publish({ type => "message", text => $text });
     $self->write({ success => 1 });
 }
 
