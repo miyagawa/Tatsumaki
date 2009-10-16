@@ -1,0 +1,34 @@
+<html>
+<head>
+<title>Tatsumaki Chat demo</title>
+<script src="/static/jquery-1.3.2.min.js"></script>
+<script src="/static/jquery.ev.js"></script>
+<script>
+function doPost(el) {
+  var text = el.attr('value');
+  $.ajax({
+    url: "/chat/post",
+    data: { text: text },
+    type: 'post',
+    dataType: 'json',
+    success: function(r) { }
+  });
+  el.attr('value', '');
+  return false;
+}
+
+$(function(){
+  $.ev.handlers.message = function(e) {
+    $('#messages').append($('<li class="message"/>').text(e.text));
+  }
+  $.ev.loop('/chat/poll?' + Math.random());
+});
+</script>
+</head>
+<body>
+<form onsubmit="return doPost($('#chat'))">
+Something to say: <input id="chat" type="text" size="32"/>
+</form>
+
+<ul id="messages">
+</ul>

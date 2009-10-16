@@ -5,7 +5,6 @@ use Tatsumaki;
 use Tatsumaki::Error;
 use Tatsumaki::Application;
 use Tatsumaki::HTTPClient;
-use Tatsumaki::Server;
 use JSON;
 
 package MainHandler;
@@ -60,17 +59,66 @@ sub on_response {
     $self->finish;
 }
 
+# super-simple comet long-poll
+# TODO this should be a base-class or util
+my $waiters = [];
+my $pub = sub {
+    for my $w (@$waiters) {
+        $w->send(@_);
+    }
+    $waiters = [];
+};
+my $sub = sub {
+    my $cb = shift;
+    my $cv = AE::cv;
+    $cv->cb(sub { $cb->(shift->recv) });
+    push @$waiters, $cv;
+};
+
+package ChatPollHandler;
+use base qw(Tatsumaki::Handler);
+__PACKAGE__->nonblocking(1);
+
+sub get {
+    my $self = shift;
+    $sub->(sub { $self->on_new_event(@_) });
+}
+
+sub on_new_event {
+    my($self, @events) = @_;
+    $self->write(\@events);
+    $self->finish;
+}
+
+package ChatPostHandler;
+use base qw(Tatsumaki::Handler);
+
+sub post {
+    my $self = shift;
+    my $text = $self->request->param('text');
+    $pub->({ type => "message", text => $text });
+    $self->write({ success => 1 });
+}
+
 package main;
 
 my $app = Tatsumaki::Application->new([
     '/stream' => 'StreamWriter',
     '/feed/(\w+)' => 'FeedHandler',
+    '/chat/poll'  => 'ChatPollHandler',
+    '/chat/post'  => 'ChatPostHandler',
     '/' => 'MainHandler',
 ]);
 
+# TODO this should be part of core
+use File::Basename qw(dirname);
+use Plack::Middleware::Static;
+$app = Plack::Middleware::Static->wrap($app, path => qr/^\/static/, root => dirname(__FILE__));
+
 if (__FILE__ eq $0) {
+    require Tatsumaki::Server;
     Tatsumaki::Server->new(port => 9999)->run($app);
 } else {
-    return $app->psgi_app;
+    return $app;
 }
 
