@@ -48,6 +48,7 @@ sub register_service {
             'psgi.errors'     => *STDERR,
             'psgi.url_scheme' => 'http',
             'psgi.nonblocking'  => Plack::Util::TRUE,
+            'psgi.streaming'    => Plack::Util::TRUE,
             'psgi.run_once'     => Plack::Util::FALSE,
             'psgi.multithread'  => Plack::Util::FALSE,
             'psgi.multiprocess' => Plack::Util::FALSE,
