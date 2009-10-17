@@ -111,6 +111,8 @@ sub finish {
     $self->write($chunk) if defined $chunk;
     $self->flush(1);
     if ($self->writer) {
+        # HACK: to cleanly finish chunk
+        $self->writer->write(undef);
         $self->writer->close;
     } elsif ($self->condvar) {
         $self->condvar->send($self->response->finalize);
