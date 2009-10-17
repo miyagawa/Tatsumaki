@@ -84,11 +84,13 @@ sub post {
     my($self, $channel) = @_;
 
     # TODO: decode should be done in the framework or middleware
-    my $text  = Encode::decode_utf8($self->request->param('text'));
-    my $email = $self->request->param('email');
+    my $v = $self->request->params;
+    my $text  = Encode::decode_utf8($v->{text});
+    my $email = $v->{email};
     my $mq = Tatsumaki::MessageQueue->instance($channel);
     $mq->publish({
         type => "message", text => $text, email => $email,
+        avatar => $v->{avatar}, name => $v->{name},
         address => $self->request->address, time => scalar localtime(time),
     });
     $self->write({ success => 1 });

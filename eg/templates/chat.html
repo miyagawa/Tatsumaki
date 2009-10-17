@@ -26,13 +26,15 @@ function doPost(eml, el) {
 
 $(function(){
   $.ev.handlers.message = function(e) {
-    var avatar = e.avatar || ("http://www.gravatar.com/avatar/" + $.md5(e.email));
-    var name   = e.name   || e.email || 'Anonymous';
-    var img = $('<img/>').attr('src', avatar).attr('alt', name).addClass('avatar');
-    $('#messages').prepend(
-      $('<li class="message"/>').text(e.text).prepend(img)
-        .append($('<span/>').addClass('meta').text(' (' + e.time + ' from ' + e.address + ')'))
-    );
+    try {
+      var avatar = e.avatar || ("http://www.gravatar.com/avatar/" + $.md5(e.email || 'foo'));
+      var name   = e.name   || e.email || 'Anonymous';
+      var img = $('<img/>').attr('src', avatar).attr('alt', name).addClass('avatar');
+      $('#messages').prepend(
+        $('<li class="message"/>').text(e.text).prepend(img)
+          .append($('<span/>').addClass('meta').text(' (' + e.time + ' from ' + e.address + ')'))
+      );
+    } catch(e) { console.log(e) };
   }
   $.ev.loop('/chat/<?= $channel ?>/poll?' + Math.random());
   if ($.cookie(cookieName))
