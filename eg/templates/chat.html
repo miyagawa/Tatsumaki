@@ -51,11 +51,11 @@ $(function(){
   });
 });
 </script>
+<link rel="stylesheet" href="/static/screen.css" />
 <style>
-h1 { font-size: 1.5em }
 ul#messages {
   list-style-type: none;
-  padding-left: 1em;
+  margin-top: 1em;
 }
 img.avatar {
   width: 25px; height: 25px;
@@ -69,6 +69,10 @@ img.avatar {
   color: #888;
   font-size: 0.8em;
 }
+body {
+  margin: 1em 2em
+}
+
 </style>
 </head>
 <body>
@@ -76,11 +80,13 @@ img.avatar {
 <!-- move this input out of form so Firefox can submit with enter key :/ -->
 Your email (for Gravatar): <input id="email" type="text" name="email" size="24"/>
 <form onsubmit="return doPost($('#email'), $('#chat'))">
-Something to say: <input id="chat" type="text" size="32"/>
+Something to say: <input id="chat" type="text" size="48"/>
 </form>
 
 <ul id="messages">
 </ul>
+
+<div id="footer">Powered by <a href="http://github.com/miyagawa/Tatsumaki">Tatsumaki/<?= $Tatsumaki::VERSION ?></a>.</div>
 
 </body>
 </html>

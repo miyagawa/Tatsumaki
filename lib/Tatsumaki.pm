@@ -88,12 +88,13 @@ Tatsumaki - Non-blocking Web server and framework based on AnyEvent
 
 =head1 DESCRIPTION
 
-Tatsumaki is a toy port of Tornado for Perl using PSGI (with
+Tatsumaki is a toy port of Tornado for Perl using Plack (with
 non-blocking extensions) and AnyEvent.
 
-Note that this is not a serious port but an experiment to see how
-non-blocking apps can be implemented in PSGI compatible web servers
-and frameworks.
+It allows you to write a web application that does a immediate
+response with template rendering, IO-bound delayed response (like
+fetching third party API or XML feeds), server push streaming and
+long-poll Comet in a clean unified API.
 
 =head1 TATSUMAKI?
 
@@ -106,12 +107,12 @@ loved the Capcom videogame back in the day :)
 When C<nonblocking> is declared in your application, you need a PSGI
 server backend that supports C<psgi.streaming> response style, which
 is a callback that starts the response and gives you back the writer
-object. Currently AnyEvent and Coro backend supports this option, or
-you can use L<Plack::Middleware::Writer> middleware to fallback in
-non-supported environments.
+object. Currently Tatsumaki application is supposed to run on
+Tatsumaki::Server, Plack::Server::AnyEvent and Plack::Server::Coro.
 
 If C<nonblocking> is not used, your application is supposed to run in
-any PSGI standard environments.
+any PSGI standard environments, including blocking multiprocess
+environments like mod_perl2 and prefork.
 
 =head1 AUTHOR
 
