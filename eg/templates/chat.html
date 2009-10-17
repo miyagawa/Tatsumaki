@@ -1,3 +1,4 @@
+? my $args = $_[0]; my $channel = $args->{channel};
 <html>
 <head>
 <title>Tatsumaki Chat demo</title>
@@ -13,7 +14,7 @@ function doPost(eml, el) {
   var text = el.attr('value');
   if (!text) return false;
   $.ajax({
-    url: "/chat/post",
+    url: "/chat/<?= $channel ?>/post",
     data: { email: email, text: text },
     type: 'post',
     dataType: 'json',
@@ -33,11 +34,11 @@ $(function(){
         .append($('<span/>').addClass('meta').text(' (' + e.time + ' from ' + e.address + ')'))
     );
   }
-  $.ev.loop('/chat/poll?' + Math.random());
+  $.ev.loop('/chat/<?= $channel ?>/poll?' + Math.random());
   if ($.cookie(cookieName))
     $('#email').attr('value', $.cookie(cookieName));
   $.ajax({
-    url: '/chat/backlog?' + Math.random(),
+    url: '/chat/<?= $channel ?>/backlog?' + Math.random(),
     method: 'get',
     dataType: 'json',
     success: function(r) {
@@ -49,6 +50,7 @@ $(function(){
 });
 </script>
 <style>
+h1 { font-size: 1.5em }
 ul#messages {
   list-style-type: none;
   padding-left: 1em;
@@ -68,6 +70,7 @@ img.avatar {
 </style>
 </head>
 <body>
+<h1 class="chat-room-name">Chat room: <?= $channel ?></h1>
 <!-- move this input out of form so Firefox can submit with enter key :/ -->
 Your email (for Gravatar): <input id="email" type="text" name="email" size="24"/>
 <form onsubmit="return doPost($('#email'), $('#chat'))">

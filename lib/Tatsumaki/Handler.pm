@@ -4,6 +4,7 @@ use Carp ();
 use Encode ();
 use Moose;
 use JSON;
+use Text::MicroTemplate::File;
 use Tatsumaki::Error;
 
 has application => (is => 'rw', isa => 'Tatsumaki::Application');
@@ -12,6 +13,7 @@ has request  => (is => 'rw', isa => 'Plack::Request');
 has response => (is => 'rw', isa => 'Plack::Response', lazy_build => 1);
 has args     => (is => 'rw', isa => 'ArrayRef');
 has writer   => (is => 'rw');
+has template => (is => 'rw', isa => 'Text::MicroTemplate::File', lazy_build => 1);
 
 has _write_buffer => (is => 'rw', isa => 'ArrayRef', lazy => 1, default => sub { [] });
 
@@ -29,7 +31,7 @@ sub nonblocking {
 
 sub _build_response {
     my $self = shift;
-    $self->request->new_response(200, [ 'Content-Type' => 'text/plain; charset=utf-8' ]);
+    $self->request->new_response(200, [ 'Content-Type' => 'text/html; charset=utf-8' ]);
 }
 
 sub run {
@@ -105,13 +107,28 @@ sub flush {
 }
 
 sub finish {
-    my $self = shift;
+    my($self, $chunk) = @_;
+    $self->write($chunk) if defined $chunk;
     $self->flush(1);
     if ($self->writer) {
         $self->writer->close;
     } elsif ($self->condvar) {
         $self->condvar->send($self->response->finalize);
     }
+}
+
+sub _build_template {
+    my $self = shift;
+    my $path = $self->application->template_path;
+    Text::MicroTemplate::File->new(
+        include_path => ref $path eq 'ARRAY' ? $path : [ $path ],
+        use_cache => 1,
+    );
+}
+
+sub render {
+    my($self, $file, $args) = @_;
+    $self->finish($self->template->render_file($file, $args)->as_string);
 }
 
 no Moose;

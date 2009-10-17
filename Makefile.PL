@@ -9,6 +9,7 @@ requires 'Plack';
 requires 'Plack::Request';
 requires 'Throwable';
 requires 'JSON';
+requires 'Text::MicroTemplate';
 build_requires 'Test::More';
 use_test_base;
 auto_include_deps;

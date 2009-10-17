@@ -9,17 +9,19 @@ use Try::Tiny;
 use overload q(&{}) => sub { shift->psgi_app }, fallback => 1;
 
 has _rules => (is => 'rw', isa => 'ArrayRef');
+has template_path => (is => 'rw', isa => 'Str', default => "templates");
 
 around BUILDARGS => sub {
     my $orig = shift;
     my $class = shift;
     if (ref $_[0] eq 'ARRAY') {
+        my $handlers = shift @_;
         my @rules;
-        while (my($path, $handler) = splice @{$_[0]}, 0, 2) {
+        while (my($path, $handler) = splice @$handlers, 0, 2) {
             $path = qr/^$path/ unless ref $path eq 'RegExp';
             push @rules, { path => $path, handler => $handler };
         }
-        $class->$orig(_rules => \@rules);
+        $class->$orig(_rules => \@rules, @_);
     } else {
         $class->$orig(@_);
     }

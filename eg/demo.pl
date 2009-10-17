@@ -66,8 +66,8 @@ __PACKAGE__->nonblocking(1);
 use Tatsumaki::MessageQueue;
 
 sub get {
-    my $self = shift;
-    my $mq = Tatsumaki::MessageQueue->instance('Chat');
+    my($self, $channel) = @_;
+    my $mq = Tatsumaki::MessageQueue->instance($channel);
     $mq->poll(sub { $self->on_new_event(@_) });
 }
 
@@ -81,11 +81,12 @@ package ChatPostHandler;
 use base qw(Tatsumaki::Handler);
 
 sub post {
-    my $self = shift;
+    my($self, $channel) = @_;
+
     # TODO: decode should be done in the framework or middleware
     my $text  = Encode::decode_utf8($self->request->param('text'));
     my $email = $self->request->param('email');
-    my $mq = Tatsumaki::MessageQueue->instance('Chat');
+    my $mq = Tatsumaki::MessageQueue->instance($channel);
     $mq->publish({
         type => "message", text => $text, email => $email,
         address => $self->request->address, time => scalar localtime(time),
@@ -98,8 +99,9 @@ use base qw(Tatsumaki::Handler);
 __PACKAGE__->nonblocking(1);
 
 sub get {
-    my $self = shift;
-    my $mq = Tatsumaki::MessageQueue->instance('Chat');
+    my($self, $channel) = @_;
+
+    my $mq = Tatsumaki::MessageQueue->instance($channel);
     $mq->poll_backlog(20, sub {
         my @events = @_;
         $self->write(\@events);
@@ -107,19 +109,30 @@ sub get {
     });
 }
 
+package ChatRoomHandler;
+use base qw(Tatsumaki::Handler);
+
+sub get {
+    my($self, $channel) = @_;
+    $self->render('chat.html', { channel => $channel });
+}
+
 package main;
+use File::Basename;
 
 my $app = Tatsumaki::Application->new([
     '/stream' => 'StreamWriter',
     '/feed/(\w+)' => 'FeedHandler',
-    '/chat/poll'  => 'ChatPollHandler',
-    '/chat/post'  => 'ChatPostHandler',
-    '/chat/backlog' => 'ChatBacklogHandler',
+    '/chat/(\w+)/poll'  => 'ChatPollHandler',
+    '/chat/(\w+)/post'  => 'ChatPostHandler',
+    '/chat/(\w_)/backlog' => 'ChatBacklogHandler',
+    '/chat/(\w+)' => 'ChatRoomHandler',
     '/' => 'MainHandler',
 ]);
 
+$app->template_path(dirname(__FILE__) . "/templates");
+
 # TODO this should be part of core
-use File::Basename qw(dirname);
 use Plack::Middleware::Static;
 $app = Plack::Middleware::Static->wrap($app, path => qr/^\/static/, root => dirname(__FILE__));
 
