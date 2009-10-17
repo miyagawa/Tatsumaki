@@ -10,7 +10,7 @@
 var cookieName = 'tatsumaki_chat_email';
 function doPost(eml, el) {
   var email = eml.attr('value');
-  if (email) $.cookie(cookieName, email);
+  if (email) $.cookie(cookieName, email, { path: '/chat' });
   var text = el.attr('value');
   if (!text) return false;
   $.ajax({

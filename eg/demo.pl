@@ -125,7 +125,7 @@ my $app = Tatsumaki::Application->new([
     '/feed/(\w+)' => 'FeedHandler',
     '/chat/(\w+)/poll'  => 'ChatPollHandler',
     '/chat/(\w+)/post'  => 'ChatPostHandler',
-    '/chat/(\w_)/backlog' => 'ChatBacklogHandler',
+    '/chat/(\w+)/backlog' => 'ChatBacklogHandler',
     '/chat/(\w+)' => 'ChatRoomHandler',
     '/' => 'MainHandler',
 ]);
