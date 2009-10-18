@@ -30,12 +30,17 @@ sub request {
     my $headers = $request->headers;
     $headers->{'user-agent'} = $self->agent;
 
-    AnyEvent::HTTP::http_request $request->method, $request->uri,
-        timeout => $self->timeout, headers => $headers, sub {
-            my($body, $header) = @_;
-            my $res = HTTP::Response->new($header->{Status}, $header->{Reason}, [ %$header ], $body);
-            $cb->($res);
-        };
+    my %options = (
+        timeout => $self->timeout,
+        headers => $headers,
+        body    => $request->content,
+    );
+
+    AnyEvent::HTTP::http_request $request->method, $request->uri, %options, sub {
+        my($body, $header) = @_;
+        my $res = HTTP::Response->new($header->{Status}, $header->{Reason}, [ %$header ], $body);
+        $cb->($res);
+    };
 }
 
 no Moose;
