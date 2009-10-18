@@ -87,13 +87,16 @@ sub get {
 
     my $boundary = '|||';
     $self->response->content_type('multipart/mixed; boundary="' . $boundary . '"');
-    $self->flush;
+
+    # HACK: Always write a boundary for the next event, so client JS can fire the event immediately
+    # Maybe DUI.Stream should respect the Content-Length header to look at the endFlag
+    $self->stream_write("--$boundary\n");
 
     $mq->poll(sub {
         my @events = @_;
         for my $event (@events) {
             my $json = JSON::encode_json($event);
-            $self->stream_write("--$boundary\nContent-Type: application/json\n\n$json\n");
+            $self->stream_write("Content-Type: application/json\n\n$json\n--$boundary\n");
         }
     });
 }
