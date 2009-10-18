@@ -48,7 +48,6 @@ $(function(){
   if (useMXHR) {
     var s = new DUI.Stream();
     s.listen('application/json', function(payload) {
-    console.log(payload);
       var event = eval('(' + payload + ')');
       onNewEvent(event);
     });

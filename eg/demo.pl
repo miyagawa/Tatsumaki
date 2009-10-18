@@ -86,6 +86,7 @@ sub get {
     my $mq = Tatsumaki::MessageQueue->instance($channel);
 
     my $boundary = '|||';
+    $self->response->header('Transfer-Encoding' => 'identity');
     $self->response->content_type('multipart/mixed; boundary="' . $boundary . '"');
 
     # HACK: Always write a boundary for the next event, so client JS can fire the event immediately

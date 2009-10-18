@@ -210,7 +210,7 @@ DUI.create('Stream', {
            so if the payload starts on the line after the boundary, we'll intentionally ditch that line
            because it doesn't conform to the spec. QQ more noob, L2play, etc. */
         var mimeAndPayload = this.currentStream.split("\n");
-        
+
         var mime = mimeAndPayload.shift().split('Content-Type:', 2)[1].split(";", 1)[0].replace(' ', '');
         
         //Better to have this null than undefined
