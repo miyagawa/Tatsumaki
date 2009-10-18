@@ -156,6 +156,7 @@ $app->template_path(dirname(__FILE__) . "/templates");
 use Plack::Middleware::Static;
 $app = Plack::Middleware::Static->wrap($app, path => qr/^\/static/, root => dirname(__FILE__));
 
+# TODO this should be an external services module
 if ($ENV{TWITTER_USERNAME}) {
     require AnyEvent::Twitter::Stream;
     my $listener; $listener = AnyEvent::Twitter::Stream->new(
