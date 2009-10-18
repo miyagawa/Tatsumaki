@@ -96,23 +96,23 @@ response with template rendering, IO-bound delayed response (like
 fetching third party API or XML feeds), server push streaming and
 long-poll Comet in a clean unified API.
 
-=head1 TATSUMAKI?
-
-Tatsumaki is a Japanese for Tornado. Also, it might sound familiar
-from "Tatsumaki Senpuukyaku" of Ryu from Street Fighter II if you
-loved the Capcom videogame back in the day :)
-
 =head1 PSGI COMPATIBILITY
 
 When C<nonblocking> is declared in your application, you need a PSGI
 server backend that supports C<psgi.streaming> response style, which
 is a callback that starts the response and gives you back the writer
-object. Currently Tatsumaki application is supposed to run on
-Tatsumaki::Server, Plack::Server::AnyEvent and Plack::Server::Coro.
+object. Currently Tatsumaki nonblocking application is supposed to run
+on Tatsumaki::Server, Plack::Server::AnyEvent and Plack::Server::Coro.
 
 If C<nonblocking> is not used, your application is supposed to run in
 any PSGI standard environments, including blocking multiprocess
 environments like mod_perl2 and prefork.
+
+=head1 TATSUMAKI?
+
+Tatsumaki is a Japanese for Tornado. Also, it might sound familiar
+from "Tatsumaki Senpuukyaku" of Ryu from Street Fighter II if you
+loved the Capcom videogame back in the day :)
 
 =head1 AUTHOR
 

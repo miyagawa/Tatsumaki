@@ -72,23 +72,35 @@ sub run {
     # TODO supported_methods
     if ($self->is_nonblocking) {
         unless ($self->request->env->{'psgi.streaming'}) {
-            Tatsumaki::Error::HTTP->throw(500, "nonblocking handlers need PSGI servers that support psgi.streaming");
+            Tatsumaki::Error::HTTP->throw(500, "nonblocking handlers need PSGI servers with psgi.streaming");
         }
         my $cv = AE::cv;
         $self->condvar($cv);
         return sub {
             my $start_response = shift;
-            $cv->cb(sub {
-                my $w = $start_response->(shift->recv);
+            if ($self->request->env->{'psgi.nonblocking'}) {
+                $cv->cb(sub {
+                    my $w = $start_response->($_[0]->recv);
+                    $self->writer($w) if $w;
+                });
+                $self->$method(@{$self->args});
+            } else {
+                $self->log("psgi.nonblocking is off: running " . ref($self) .  " in a blocking mode\n");
+                $self->$method(@{$self->args});
+                my $w = $start_response->($cv->recv);
                 $self->writer($w) if $w;
-            });
-            $self->$method(@{$self->args});
+            }
         };
     } else {
         $self->$method(@{$self->args});
         $self->flush;
         return $self->response->finalize;
     }
+}
+
+sub log {
+    my($self, @stuff) = @_;
+    $self->request->env->{'psgi.errors'}->print(join '', @stuff);
 }
 
 sub get_writer {
@@ -138,7 +150,7 @@ sub flush {
         my $res = $self->response->finalize;
         delete $res->[2]; # gimme a writer
         $self->condvar->send($res);
-        $self->writer or Carp::croak("Can't get writer object back");
+        $self->writer or Carp::croak("Can't get writer object back: you need servers with psgi.nonblocking");
         $self->flush();
     }
 }
