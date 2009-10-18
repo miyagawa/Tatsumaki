@@ -4,12 +4,13 @@ use Moose;
 use Plack::Request;
 use Plack::Response;
 use Tatsumaki::Handler;
+use Text::MicroTemplate::File;
 use Try::Tiny;
 
 use overload q(&{}) => sub { shift->psgi_app }, fallback => 1;
 
 has _rules => (is => 'rw', isa => 'ArrayRef');
-has template_path => (is => 'rw', isa => 'Str', default => "templates");
+has template => (is => 'rw', isa => 'Text::MicroTemplate::File', lazy_build => 1, handles => [ 'render_file' ]);
 
 around BUILDARGS => sub {
     my $orig = shift;
@@ -67,6 +68,23 @@ sub psgi_app {
 
         return $res;
     };
+}
+
+sub _build_template {
+    my $self = shift;
+    Text::MicroTemplate::File->new(
+        include_path => [ 'templates' ],
+        use_cache => 1,
+    );
+}
+
+sub template_path {
+    my $self = shift;
+    if (@_) {
+        my $path = ref $_[0] eq 'ARRAY' ? $_[0] : [ $_[0] ];
+        $self->template->{include_path} = $path;
+    }
+    $self->template->{include_path};
 }
 
 1;

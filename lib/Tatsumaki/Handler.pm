@@ -5,7 +5,6 @@ use Encode ();
 use Moose;
 use MIME::Base64 ();
 use JSON;
-use Text::MicroTemplate::File;
 use Tatsumaki::Error;
 
 has application => (is => 'rw', isa => 'Tatsumaki::Application');
@@ -14,7 +13,6 @@ has request  => (is => 'rw', isa => 'Plack::Request');
 has response => (is => 'rw', isa => 'Plack::Response', lazy_build => 1);
 has args     => (is => 'rw', isa => 'ArrayRef');
 has writer   => (is => 'rw');
-has template => (is => 'rw', isa => 'Text::MicroTemplate::File', lazy_build => 1);
 has mxhr     => (is => 'rw', isa => 'Bool');
 has mxhr_boundary => (is => 'rw', isa => 'Str', lazy => 1, lazy_build => 1);
 
@@ -156,19 +154,10 @@ sub finish {
     }
 }
 
-sub _build_template {
-    my $self = shift;
-    my $path = $self->application->template_path;
-    Text::MicroTemplate::File->new(
-        include_path => ref $path eq 'ARRAY' ? $path : [ $path ],
-        use_cache => 1,
-    );
-}
-
 sub render {
     my($self, $file, $args) = @_;
     $args ||= {};
-    $self->finish($self->template->render_file($file, { %$args, handler => $self })->as_string);
+    $self->finish($self->application->render_file($file, { %$args, handler => $self })->as_string);
 }
 
 no Moose;
