@@ -20,6 +20,12 @@ has mxhr_boundary => (is => 'rw', isa => 'Str', lazy => 1, lazy_build => 1);
 
 has _write_buffer => (is => 'rw', isa => 'ArrayRef', lazy => 1, default => sub { [] });
 
+sub head   { Tatsumaki::Error::HTTP->throw(405) }
+sub get    { Tatsumaki::Error::HTTP->throw(405) }
+sub post   { Tatsumaki::Error::HTTP->throw(405) }
+sub put    { Tatsumaki::Error::HTTP->throw(405) }
+sub delete { Tatsumaki::Error::HTTP->throw(405) }
+
 my $class_attr = {};
 
 sub is_nonblocking {

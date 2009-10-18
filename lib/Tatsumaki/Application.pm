@@ -50,12 +50,22 @@ sub psgi_app {
             or return [ 404, [ 'Content-Type' => 'text/html' ], [ "404 Not Found" ] ];
 
         # TODO: if you throw exception from nonblocking callback, there seems no way to catch it
-        my $context = $handler->(
-            application => $self,
-            handler => $handler,
-            request => $req,
-        );
-        $context->run;
+        my $res;
+        try {
+            $res = $handler->(
+                application => $self,
+                handler => $handler,
+                request => $req,
+            )->run;
+        } catch {
+            if ($_->isa('Tatsumaki::Error::HTTP')) {
+                $res = [ $_->code, [ 'Content-Type' => 'text/plain' ], [ $_->message ] ];
+            } else {
+                $res = [ 500, [ 'Content-Type' => 'text/plain' ], [ "Internal Server Error" ] ];
+            }
+        };
+
+        return $res;
     };
 }
 
