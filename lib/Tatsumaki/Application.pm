@@ -74,7 +74,7 @@ sub _build_template {
     my $self = shift;
     Text::MicroTemplate::File->new(
         include_path => [ 'templates' ],
-        use_cache => 1,
+        use_cache => 2,
     );
 }
 
