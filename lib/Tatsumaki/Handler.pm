@@ -3,6 +3,7 @@ use strict;
 use Carp ();
 use Encode ();
 use Moose;
+use MIME::Base64 ();
 use JSON;
 use Text::MicroTemplate::File;
 use Tatsumaki::Error;
@@ -14,6 +15,8 @@ has response => (is => 'rw', isa => 'Plack::Response', lazy_build => 1);
 has args     => (is => 'rw', isa => 'ArrayRef');
 has writer   => (is => 'rw');
 has template => (is => 'rw', isa => 'Text::MicroTemplate::File', lazy_build => 1);
+has mxhr     => (is => 'rw', isa => 'Bool');
+has mxhr_boundary => (is => 'rw', isa => 'Str', lazy => 1, lazy_build => 1);
 
 has _write_buffer => (is => 'rw', isa => 'ArrayRef', lazy => 1, default => sub { [] });
 
@@ -27,6 +30,31 @@ sub is_nonblocking {
 sub nonblocking {
     my $class = shift;
     $class_attr->{$class}{is_nonblocking} = shift;
+}
+
+sub multipart_xhr_push {
+    my $self = shift;
+    if ($_[0]) {
+        Carp::croak("nonblocking should be set to do multipart XHR push")
+            unless $self->is_nonblocking;
+        $self->response->header('Transfer-Encoding' => 'identity');
+        $self->response->content_type('multipart/mixed; boundary="' . $self->mxhr_boundary . '"');
+
+        # HACK: Always write a boundary for the next event, so client JS can fire the event immediately
+        # Maybe DUI.Stream should respect the Content-Length header to look at the endFlag
+        $self->stream_write("--" . $self->mxhr_boundary. "\n");
+
+        return $self->mxhr(1);
+    } else {
+        return $self->mxhr;
+    }
+}
+
+sub _build_mxhr_boundary {
+    my $size = 2;
+    my $b = MIME::Base64::encode(join("", map chr(rand(256)), 1..$size*3), "");
+    $b =~ s/[\W]/X/g;  # ensure alnum only
+    $b;
 }
 
 sub _build_response {
@@ -68,8 +96,13 @@ sub get_writer {
 sub get_chunk {
     my $self = shift;
     if (ref $_[0]) {
-        $self->response->content_type('application/json');
-        return JSON::encode_json($_[0]);
+        if ($self->mxhr) {
+            my $json = JSON::encode_json($_[0]);
+            return "Content-Type: application/json\n\n$json\n--" . $self->mxhr_boundary. "\n";
+        } else {
+            $self->response->content_type('application/json');
+            return JSON::encode_json($_[0]);
+        }
     } else {
         join '', map Encode::encode_utf8($_), @_;
     }

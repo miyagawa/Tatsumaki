@@ -85,19 +85,12 @@ sub get {
     my($self, $channel) = @_;
     my $mq = Tatsumaki::MessageQueue->instance($channel);
 
-    my $boundary = '|||';
-    $self->response->header('Transfer-Encoding' => 'identity');
-    $self->response->content_type('multipart/mixed; boundary="' . $boundary . '"');
-
-    # HACK: Always write a boundary for the next event, so client JS can fire the event immediately
-    # Maybe DUI.Stream should respect the Content-Length header to look at the endFlag
-    $self->stream_write("--$boundary\n");
+    $self->multipart_xhr_push(1);
 
     $mq->poll(sub {
         my @events = @_;
         for my $event (@events) {
-            my $json = JSON::to_json($event); # Don't encode it to utf-8 yet since write() does that
-            $self->stream_write("Content-Type: application/json\n\n$json\n--$boundary\n");
+            $self->stream_write($event);
         }
     });
 }
