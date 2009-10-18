@@ -104,10 +104,9 @@ sub post {
     # TODO: decode should be done in the framework or middleware
     my $v = $self->request->params;
     my $text  = Encode::decode_utf8($v->{text});
-    my $email = $v->{email};
     my $mq = Tatsumaki::MessageQueue->instance($channel);
     $mq->publish({
-        type => "message", text => $text, email => $email,
+        type => "message", text => $text, ident => $v->{ident},
         avatar => $v->{avatar}, name => $v->{name},
         address => $self->request->address, time => scalar localtime(time),
     });
@@ -156,6 +155,31 @@ $app->template_path(dirname(__FILE__) . "/templates");
 # TODO this should be part of core
 use Plack::Middleware::Static;
 $app = Plack::Middleware::Static->wrap($app, path => qr/^\/static/, root => dirname(__FILE__));
+
+if ($ENV{TWITTER_USERNAME}) {
+    require AnyEvent::Twitter::Stream;
+    my $topic = $ENV{TWITTER_TOPIC} || "twitter";
+    my $listener; $listener = AnyEvent::Twitter::Stream->new(
+        username => $ENV{TWITTER_USERNAME},
+        password => $ENV{TWITTER_PASSWORD},
+        method   => "filter",
+        track    => $topic,
+        on_tweet => sub {
+            my $tweet = shift;
+            Tatsumaki::MessageQueue->instance($topic)->publish({
+                type   => "message", address => 'twitter.com', time => scalar localtime,
+                name   => $tweet->{user}{screen_name},
+                avatar => $tweet->{user}{profile_image_url},
+                text   => $tweet->{text},
+                ident  => "http://twitter.com/$tweet->{user}{screen_name}",
+            });
+        },
+        on_eof => sub {
+            undef $listener;
+        },
+    );
+    warn "Twitter stream is available at /chat/$topic\n";
+}
 
 if (__FILE__ eq $0) {
     require Tatsumaki::Server;
