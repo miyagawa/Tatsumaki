@@ -158,15 +158,13 @@ $app = Plack::Middleware::Static->wrap($app, path => qr/^\/static/, root => dirn
 
 if ($ENV{TWITTER_USERNAME}) {
     require AnyEvent::Twitter::Stream;
-    my $topic = $ENV{TWITTER_TOPIC} || "twitter";
     my $listener; $listener = AnyEvent::Twitter::Stream->new(
         username => $ENV{TWITTER_USERNAME},
         password => $ENV{TWITTER_PASSWORD},
-        method   => "filter",
-        track    => $topic,
+        method   => "sample",
         on_tweet => sub {
             my $tweet = shift;
-            Tatsumaki::MessageQueue->instance($topic)->publish({
+            Tatsumaki::MessageQueue->instance("twitter")->publish({
                 type   => "message", address => 'twitter.com', time => scalar localtime,
                 name   => $tweet->{user}{screen_name},
                 avatar => $tweet->{user}{profile_image_url},
@@ -178,7 +176,7 @@ if ($ENV{TWITTER_USERNAME}) {
             undef $listener;
         },
     );
-    warn "Twitter stream is available at /chat/$topic\n";
+    warn "Twitter stream is available at /chat/twitter\n";
 }
 
 if (__FILE__ eq $0) {
