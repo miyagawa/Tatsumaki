@@ -44,13 +44,13 @@ sub run {
         }
         my $cv = AE::cv;
         $self->condvar($cv);
-        $self->$method(@{$self->args});
         return sub {
             my $start_response = shift;
             $cv->cb(sub {
                 my $w = $start_response->(shift->recv);
                 $self->writer($w) if $w;
             });
+            $self->$method(@{$self->args});
         };
     } else {
         $self->$method(@{$self->args});
@@ -128,7 +128,8 @@ sub _build_template {
 
 sub render {
     my($self, $file, $args) = @_;
-    $self->finish($self->template->render_file($file, $args)->as_string);
+    $args ||= {};
+    $self->finish($self->template->render_file($file, { %$args, handler => $self })->as_string);
 }
 
 no Moose;

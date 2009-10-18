@@ -29,21 +29,39 @@ sub poll_backlog {
 
 sub publish {
     my($self, @events) = @_;
+
+    my @persistent;
     for my $w (@{$self->waiters}) {
-        $w->send(@events);
+        my $cb = $w->[0]->cb;
+        $w->[0]->send(@events);
+        if ($w->[1]) {
+            push @persistent, do {
+                my $cv = AE::cv;
+                $cv->cb($cb);
+                [ $cv, 1 ];
+            };
+        }
     }
     $self->append_backlog(@events);
-    $self->waiters([]);
+    $self->waiters(\@persistent);
 }
 
-sub poll {
+sub poll_once {
     my $self = shift;
     # FIXME If publish happens between poll -> poll then the events doesn't get delivered
     # poll should first check if there's anything left for this client
     my $cb = shift;
     my $cv = AE::cv;
     $cv->cb(sub { $cb->($_[0]->recv) });
-    push @{$self->waiters}, $cv;
+    push @{$self->waiters}, [ $cv, 0 ];
+}
+
+sub poll {
+    my $self = shift;
+    my $cb = shift;
+    my $cv = AE::cv;
+    $cv->cb(sub { $cb->($_[0]->recv) });
+    push @{$self->waiters}, [ $cv, 1 ];
 }
 
 1;

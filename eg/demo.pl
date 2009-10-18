@@ -68,13 +68,34 @@ use Tatsumaki::MessageQueue;
 sub get {
     my($self, $channel) = @_;
     my $mq = Tatsumaki::MessageQueue->instance($channel);
-    $mq->poll(sub { $self->on_new_event(@_) });
+    $mq->poll_once(sub { $self->on_new_event(@_) });
 }
 
 sub on_new_event {
     my($self, @events) = @_;
     $self->write(\@events);
     $self->finish;
+}
+
+package ChatMultipartPollHandler;
+use base qw(Tatsumaki::Handler);
+__PACKAGE__->nonblocking(1);
+
+sub get {
+    my($self, $channel) = @_;
+    my $mq = Tatsumaki::MessageQueue->instance($channel);
+
+    my $boundary = '|||';
+    $self->response->content_type('multipart/mixed; boundary="' . $boundary . '"');
+    $self->flush;
+
+    $mq->poll(sub {
+        my @events = @_;
+        for my $event (@events) {
+            my $json = JSON::encode_json($event);
+            $self->stream_write("--$boundary\nContent-Type: application/json\n\n$json\n");
+        }
+    });
 }
 
 package ChatPostHandler;
@@ -116,7 +137,7 @@ use base qw(Tatsumaki::Handler);
 
 sub get {
     my($self, $channel) = @_;
-    $self->render('chat.html', { channel => $channel });
+    $self->render('chat.html');
 }
 
 package main;
@@ -126,6 +147,7 @@ my $app = Tatsumaki::Application->new([
     '/stream' => 'StreamWriter',
     '/feed/(\w+)' => 'FeedHandler',
     '/chat/(\w+)/poll'  => 'ChatPollHandler',
+    '/chat/(\w+)/mxhrpoll'  => 'ChatMultipartPollHandler',
     '/chat/(\w+)/post'  => 'ChatPostHandler',
     '/chat/(\w+)/backlog' => 'ChatBacklogHandler',
     '/chat/(\w+)' => 'ChatRoomHandler',
