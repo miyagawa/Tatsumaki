@@ -7,10 +7,8 @@
 ? if ($mxhr) {
 <script src="/static/DUI.js"></script>
 <script src="/static/Stream.js"></script>
-<script>var useMXHR = true</script>
 ? } else {
 <script src="/static/jquery.ev.js"></script>
-<script>var useMXHR = false</script>
 ? }
 <script src="/static/jquery.md5.js"></script>
 <script src="/static/jquery.cookie.js"></script>
@@ -45,7 +43,7 @@ $(function(){
     } catch(e) { console.log(e) };
   }
 
-  if (useMXHR) {
+  if (typeof DUI != 'undefined') {
     var s = new DUI.Stream();
     s.listen('application/json', function(payload) {
       var event = eval('(' + payload + ')');
