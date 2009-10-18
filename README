@@ -17,7 +17,7 @@ SYNOPSIS
 
       package FeedHandler;
       use base qw(Tatsumaki::Handler);
-      __PACKAGE__->nonblocking(1);
+      __PACKAGE__->asynchronous(1);
 
       use JSON;
 
@@ -39,7 +39,7 @@ SYNOPSIS
 
       package StreamWriter;
       use base qw(Tatsumaki::Handler);
-      __PACKAGE__->nonblocking(1);
+      __PACKAGE__->asynchronous(1);
 
       use AnyEvent;
 
@@ -80,21 +80,23 @@ DESCRIPTION
     party API or XML feeds), server push streaming and long-poll Comet in a
     clean unified API.
 
+PSGI COMPATIBILITY
+    When "asynchronous" is declared in your application, you need a PSGI
+    server backend that supports "psgi.streaming" response style. If your
+    application does server push with "stream_write", you need a server that
+    supports "psgi.nonblocking" (and "psgi.streaming") as well.
+
+    Currently Tatsumaki asynchronous application is supposed to run on
+    Tatsumaki::Server, Plack::Server::AnyEvent and Plack::Server::Coro.
+
+    If "asynchronous" is not used, your application is supposed to run in
+    any PSGI standard environments, including blocking multiprocess
+    environments like mod_perl2 and prefork.
+
 TATSUMAKI?
     Tatsumaki is a Japanese for Tornado. Also, it might sound familiar from
     "Tatsumaki Senpuukyaku" of Ryu from Street Fighter II if you loved the
     Capcom videogame back in the day :)
-
-PSGI COMPATIBILITY
-    When "nonblocking" is declared in your application, you need a PSGI
-    server backend that supports "psgi.streaming" response style, which is a
-    callback that starts the response and gives you back the writer object.
-    Currently Tatsumaki application is supposed to run on Tatsumaki::Server,
-    Plack::Server::AnyEvent and Plack::Server::Coro.
-
-    If "nonblocking" is not used, your application is supposed to run in any
-    PSGI standard environments, including blocking multiprocess environments
-    like mod_perl2 and prefork.
 
 AUTHOR
     Tatsuhiko Miyagawa <miyagawa@bulknews.net>

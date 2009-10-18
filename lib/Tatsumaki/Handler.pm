@@ -26,21 +26,23 @@ sub delete { Tatsumaki::Error::HTTP->throw(405) }
 
 my $class_attr = {};
 
-sub is_nonblocking {
+sub is_asynchronous {
     my $class = ref $_[0] || $_[0];
-    return $class_attr->{$class}{is_nonblocking};
+    return $class_attr->{$class}{is_asynchronous};
 }
 
-sub nonblocking {
+sub asynchronous {
     my $class = shift;
-    $class_attr->{$class}{is_nonblocking} = shift;
+    $class_attr->{$class}{is_asynchronous} = shift;
 }
+
+sub nonblocking { shift->asynchronous(@_) } # alias
 
 sub multipart_xhr_push {
     my $self = shift;
     if ($_[0]) {
-        Carp::croak("nonblocking should be set to do multipart XHR push")
-            unless $self->is_nonblocking;
+        Carp::croak("asynchronous should be set to do multipart XHR push")
+            unless $self->is_asynchronous;
         $self->response->header('Transfer-Encoding' => 'identity');
         $self->response->content_type('multipart/mixed; boundary="' . $self->mxhr_boundary . '"');
 
@@ -70,9 +72,9 @@ sub run {
     my $self = shift;
     my $method = lc $self->request->method;
     # TODO supported_methods
-    if ($self->is_nonblocking) {
+    if ($self->is_asynchronous) {
         unless ($self->request->env->{'psgi.streaming'}) {
-            Tatsumaki::Error::HTTP->throw(500, "nonblocking handlers need PSGI servers with psgi.streaming");
+            Tatsumaki::Error::HTTP->throw(500, "asynchronous handlers need PSGI servers with psgi.streaming");
         }
         my $cv = AE::cv;
         $self->condvar($cv);
@@ -141,7 +143,7 @@ sub flush {
     if ($self->writer) {
         $self->writer->write(join '', @{$self->_write_buffer});
         $self->_write_buffer([]);
-    } elsif (!$self->is_nonblocking || $is_final) {
+    } elsif (!$self->is_asynchronous || $is_final) {
         my $body = $self->response->body || [];
         push @$body, @{$self->_write_buffer};
         $self->_write_buffer([]);

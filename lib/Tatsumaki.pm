@@ -32,7 +32,7 @@ Tatsumaki - Non-blocking Web server and framework based on AnyEvent
 
   package FeedHandler;
   use base qw(Tatsumaki::Handler);
-  __PACKAGE__->nonblocking(1);
+  __PACKAGE__->asynchronous(1);
 
   use JSON;
 
@@ -54,7 +54,7 @@ Tatsumaki - Non-blocking Web server and framework based on AnyEvent
 
   package StreamWriter;
   use base qw(Tatsumaki::Handler);
-  __PACKAGE__->nonblocking(1);
+  __PACKAGE__->asynchronous(1);
 
   use AnyEvent;
 
@@ -98,13 +98,15 @@ long-poll Comet in a clean unified API.
 
 =head1 PSGI COMPATIBILITY
 
-When C<nonblocking> is declared in your application, you need a PSGI
-server backend that supports C<psgi.streaming> response style, which
-is a callback that starts the response and gives you back the writer
-object. Currently Tatsumaki nonblocking application is supposed to run
-on Tatsumaki::Server, Plack::Server::AnyEvent and Plack::Server::Coro.
+When C<asynchronous> is declared in your application, you need a PSGI
+server backend that supports C<psgi.streaming> response style. If your
+application does server push with C<stream_write>, you need a server
+that supports C<psgi.nonblocking> (and C<psgi.streaming>) as well.
 
-If C<nonblocking> is not used, your application is supposed to run in
+Currently Tatsumaki asynchronous application is supposed to run on
+Tatsumaki::Server, Plack::Server::AnyEvent and Plack::Server::Coro.
+
+If C<asynchronous> is not used, your application is supposed to run in
 any PSGI standard environments, including blocking multiprocess
 environments like mod_perl2 and prefork.
 

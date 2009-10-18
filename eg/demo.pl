@@ -17,7 +17,7 @@ sub get {
 
 package StreamWriter;
 use base qw(Tatsumaki::Handler);
-__PACKAGE__->nonblocking(1);
+__PACKAGE__->asynchronous(1);
 
 sub get {
     my $self = shift;
@@ -36,7 +36,7 @@ sub get {
 package FeedHandler;
 use base qw(Tatsumaki::Handler);
 
-__PACKAGE__->nonblocking(1);
+__PACKAGE__->asynchronous(1);
 
 sub get {
     my($self, $query) = @_;
@@ -61,7 +61,7 @@ sub on_response {
 
 package ChatPollHandler;
 use base qw(Tatsumaki::Handler);
-__PACKAGE__->nonblocking(1);
+__PACKAGE__->asynchronous(1);
 
 use Tatsumaki::MessageQueue;
 
@@ -79,7 +79,7 @@ sub on_new_event {
 
 package ChatMultipartPollHandler;
 use base qw(Tatsumaki::Handler);
-__PACKAGE__->nonblocking(1);
+__PACKAGE__->asynchronous(1);
 
 sub get {
     my($self, $channel) = @_;
@@ -115,7 +115,7 @@ sub post {
 
 package ChatBacklogHandler;
 use base qw(Tatsumaki::Handler);
-__PACKAGE__->nonblocking(1);
+__PACKAGE__->asynchronous(1);
 
 sub get {
     my($self, $channel) = @_;
