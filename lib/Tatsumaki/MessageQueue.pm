@@ -2,11 +2,6 @@ package Tatsumaki::MessageQueue;
 use strict;
 use Moose;
 
-use constant CV         => 0;
-use constant PERSISTENT => 1;
-use constant BUFFER     => 2;
-use constant TIMER      => 3;
-
 has channel  => (is => 'rw', isa => 'Str');
 has backlog  => (is => 'rw', isa => 'ArrayRef', default => sub { [] });
 has sessions => (is => 'rw', isa => 'HashRef', default => sub { +{} });
@@ -37,25 +32,25 @@ sub publish {
 
     for my $sid (keys %{$self->sessions}) {
         my $session = $self->sessions->{$sid};
-        my $cb = $session->[CV]->cb;
+        my $cb = $session->{cv}->cb;
 
         if ($cb) {
-            # currently listening: send the event right away
-            my @ev = (@{$session->[BUFFER]}, @events);
-            $session->[CV]->send(@ev);
-            $session->[CV] = AE::cv;
-            $session->[BUFFER] = [];
+            # currently listening: flush and send the events right away
+            my @ev = (@{$session->{buffer}}, @events);
+            $session->{cv}->send(@ev);
+            $session->{cv} = AE::cv;
+            $session->{buffer} = [];
         } else {
-            # between long poll commet: buffer the events
-            push @{$session->[BUFFER]}, @events;
+            # between long poll comet: buffer the events
+            push @{$session->{buffer}}, @events;
         }
 
-        if ($session->[PERSISTENT]) {
+        if ($session->{persistent}) {
             # TODO there's no sweeper for the persistent push: there should be
-            $session->[CV]->cb($cb); # poll forever
+            $session->{cv}->cb($cb); # poll forever
         } elsif ($cb) {
             # garbage collection
-            $session->[TIMER] = AE::timer 300, 0, sub {
+            $session->{timer} = AE::timer 300, 0, sub {
                 delete $self->sessions->{$sid};
             };
         }
@@ -66,13 +61,15 @@ sub publish {
 sub poll_once {
     my($self, $sid, $cb, $timeout) = @_;
 
-    my $session = $self->sessions->{$sid} ||= [ AE::cv, 0, [], undef ];
-    $session->[CV]->cb(sub { $cb->($_[0]->recv) });
+    my $session = $self->sessions->{$sid} ||= {
+        cv => AE::cv, persistent => 0, buffer => [],
+    };
+    $session->{cv}->cb(sub { $cb->($_[0]->recv) });
 
     # reset garbage collection timeout with the long-poll timeout
-    $session->[TIMER] = AE::timer $timeout || 55, 0, sub {
-        $session->[CV]->send();
-        $session->[CV] = AE::cv;
+    $session->{timer} = AE::timer $timeout || 55, 0, sub {
+        $session->{cv}->send();
+        $session->{cv} = AE::cv;
     };
 }
 
@@ -80,7 +77,9 @@ sub poll {
     my($self, $sid, $cb) = @_;
     my $cv = AE::cv;
     $cv->cb(sub { $cb->($_[0]->recv) });
-    $self->sessions->{$sid} = [ $cv, 1, [] ];
+    $self->sessions->{$sid} = {
+        cv => $cv, persistent => 1, buffer => [],
+    };
 }
 
 1;
