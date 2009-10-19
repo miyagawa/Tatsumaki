@@ -1,6 +1,7 @@
 package Tatsumaki::MessageQueue;
 use strict;
 use Moose;
+use Try::Tiny;
 
 has channel  => (is => 'rw', isa => 'Str');
 has backlog  => (is => 'rw', isa => 'ArrayRef', default => sub { [] });
@@ -37,9 +38,13 @@ sub publish {
         if ($cb) {
             # currently listening: flush and send the events right away
             my @ev = (@{$session->{buffer}}, @events);
-            $session->{cv}->send(@ev);
-            $session->{cv} = AE::cv;
-            $session->{buffer} = [];
+            try {
+                $session->{cv}->send(@ev);
+                $session->{cv} = AE::cv;
+                $session->{buffer} = [];
+            } catch {
+                /Broken pipe/ and delete $self->sessions->{$sid};
+            };
         } else {
             # between long poll comet: buffer the events
             push @{$session->{buffer}}, @events;
