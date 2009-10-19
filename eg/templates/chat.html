@@ -47,6 +47,9 @@ $(function(){
       if (e.text) message.text(e.text);
       if (e.html) message.html(e.html);
       message.find('a').oembed();
+      var name = e.name || (e.ident ? e.ident.split('@')[0] : null);
+      if (name)
+        message.prepend($('<span/>').addClass('name').text(name+ ': '));
 
       var meta = $('<td/>').addClass('meta').text(' (' + e.time + ' from ' + e.address + ')');
       $('#messages').prepend($('<tr/>').addClass('message').append(avatar).append(message).append(meta));
@@ -97,6 +100,9 @@ $(function(){
 }
 .chat-message {
   width: 70%;
+}
+.chat-message .name {
+  font-weight: bold;
 }
 .meta {
   vertical-align: top;

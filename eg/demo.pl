@@ -185,7 +185,7 @@ if ($ENV{TWITTER_USERNAME}) {
             return unless $tweet->{user}{screen_name};
             Tatsumaki::MessageQueue->instance($channel)->publish({
                 type   => "message", address => 'twitter.com', time => scalar localtime,
-                name   => $tweet->{user}{screen_name},
+                name   => $tweet->{user}{name},
                 avatar => $tweet->{user}{profile_image_url},
                 html   => ChatPostHandler->format_message($tweet->{text}), # FIXME
                 ident  => "http://twitter.com/$tweet->{user}{screen_name}/status/$tweet->{id}",
