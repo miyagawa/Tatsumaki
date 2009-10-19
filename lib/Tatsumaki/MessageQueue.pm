@@ -51,7 +51,6 @@ sub publish {
         }
 
         if ($session->{persistent}) {
-            # TODO there's no sweeper for the persistent push: there should be
             $session->{cv}->cb($cb); # poll forever
         } elsif ($cb) {
             # garbage collection
