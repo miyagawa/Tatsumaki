@@ -44,7 +44,7 @@ $(function(){
         $('<li class="message"/>').text(e.text).prepend(img)
           .append($('<span/>').addClass('meta').text(' (' + e.time + ' from ' + e.address + ')'))
       );
-    } catch(e) { console.log(e) };
+    } catch(e) { if (console) console.log(e) };
   }
 
   if (typeof DUI != 'undefined') {
