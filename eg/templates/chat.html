@@ -12,6 +12,7 @@
 ? }
 <script src="/static/jquery.md5.js"></script>
 <script src="/static/jquery.cookie.js"></script>
+<script src="/static/jquery.oembed.js"></script>
 <script>
 var cookieName = 'tatsumaki_chat_ident';
 function doPost(el1, el) {
@@ -33,17 +34,23 @@ function doPost(el1, el) {
 $(function(){
   var onNewEvent = function(e) {
     try {
-      var avatar = e.avatar || ("http://www.gravatar.com/avatar/" + $.md5(e.ident || 'foo'));
+      var src    = e.avatar || ("http://www.gravatar.com/avatar/" + $.md5(e.ident || 'foo'));
       var name   = e.name   || e.ident || 'Anonymous';
-      var img = $('<img/>').attr('src', avatar).attr('alt', name).addClass('avatar');
+      var avatar = $('<img/>').attr('src', src).attr('alt', name);
       if (e.ident) {
         var link = e.ident.match(/https?:/) ? e.ident : 'mailto:' + e.ident;
-        img = $('<a/>').attr('href', link).attr('target', '_blank').append(img);
+        avatar = $('<a/>').attr('href', link).attr('target', '_blank').append(avatar);
       }
-      $('#messages').prepend(
-        $('<li class="message"/>').text(e.text).prepend(img)
-          .append($('<span/>').addClass('meta').text(' (' + e.time + ' from ' + e.address + ')'))
-      );
+      avatar = $('<td/>').addClass('avatar').append(avatar);
+
+      var message = $('<td/>').addClass('chat-message');
+      if (e.text) message.text(e.text);
+      if (e.html) message.html(e.html);
+      message.find('a.oembed').oembed();
+
+      var meta = $('<td/>').addClass('meta').text(' (' + e.time + ' from ' + e.address + ')');
+      $('#messages').prepend($('<tr/>').addClass('message').append(avatar).append(message).append(meta));
+      console.log($('#messages').html());
     } catch(e) { if (console) console.log(e) };
   }
 
@@ -75,19 +82,25 @@ $(function(){
 </script>
 <link rel="stylesheet" href="/static/screen.css" />
 <style>
-ul#messages {
-  list-style-type: none;
+#messages {
   margin-top: 1em;
+  margin-right: 3em;
+  width: 100%;
 }
-img.avatar {
+.avatar {
+  width: 25px;
+  vertical-align: top;
+}
+.avatar img {
   width: 25px; height: 25px;
-  vertical-align: middle;
+  vertical-align: top;
   margin-right: 0.5em;
 }
-.message {
-  margin-top: 0.5em;
+.chat-message {
+  width: 70%;
 }
 .meta {
+  vertical-align: top;
   color: #888;
   font-size: 0.8em;
 }
@@ -105,8 +118,8 @@ Your email (for Gravatar): <input id="ident" type="text" name="ident" size="24"/
 Something to say: <input id="chat" type="text" size="48"/>
 </form>
 
-<ul id="messages">
-</ul>
+<table id="messages">
+</table>
 
 <div id="footer">Powered by <a href="http://github.com/miyagawa/Tatsumaki">Tatsumaki/<?= $Tatsumaki::VERSION ?></a>.</div>
 

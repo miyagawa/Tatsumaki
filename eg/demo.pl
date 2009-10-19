@@ -102,20 +102,30 @@ sub get {
 
 package ChatPostHandler;
 use base qw(Tatsumaki::Handler);
+use HTML::Entities;
 
 sub post {
     my($self, $channel) = @_;
 
     # TODO: decode should be done in the framework or middleware
     my $v = $self->request->params;
-    my $text  = Encode::decode_utf8($v->{text});
+    my $text = Encode::decode_utf8($v->{text});
+    my $html = $self->format_message($text);
     my $mq = Tatsumaki::MessageQueue->instance($channel);
     $mq->publish({
-        type => "message", text => $text, ident => $v->{ident},
+        type => "message", html => $html, ident => $v->{ident},
         avatar => $v->{avatar}, name => $v->{name},
         address => $self->request->address, time => scalar localtime(time),
     });
     $self->write({ success => 1 });
+}
+
+sub format_message {
+    my($self, $text) = @_;
+    $text =~ s{ (https?://\S+) | ([&<>"']+) }
+              { $1 ? do { my $url = HTML::Entities::encode($1); qq(<a href="$url" class="oembed">$url</a>) } :
+                $2 ? HTML::Entities::encode($2) : '' }egx;
+    $text;
 }
 
 package ChatBacklogHandler;
