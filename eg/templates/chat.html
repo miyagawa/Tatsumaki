@@ -50,7 +50,6 @@ $(function(){
 
       var meta = $('<td/>').addClass('meta').text(' (' + e.time + ' from ' + e.address + ')');
       $('#messages').prepend($('<tr/>').addClass('message').append(avatar).append(message).append(meta));
-      console.log($('#messages').html());
     } catch(e) { if (console) console.log(e) };
   }
 

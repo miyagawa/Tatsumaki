@@ -176,27 +176,48 @@ use Plack::Middleware::Writer;
 $app = Plack::Middleware::Writer->wrap($app);
 
 # TODO this should be an external services module
+use Try::Tiny;
 if ($ENV{TWITTER_USERNAME}) {
-    require AnyEvent::Twitter::Stream;
-    my $listener; $listener = AnyEvent::Twitter::Stream->new(
-        username => $ENV{TWITTER_USERNAME},
-        password => $ENV{TWITTER_PASSWORD},
-        method   => "sample",
-        on_tweet => sub {
+    my $tweet_cb = sub {
+        my $channel = shift;
+        return sub {
             my $tweet = shift;
-            Tatsumaki::MessageQueue->instance("twitter")->publish({
+            return unless $tweet->{user}{screen_name};
+            Tatsumaki::MessageQueue->instance($channel)->publish({
                 type   => "message", address => 'twitter.com', time => scalar localtime,
                 name   => $tweet->{user}{screen_name},
                 avatar => $tweet->{user}{profile_image_url},
                 text   => $tweet->{text},
                 ident  => "http://twitter.com/$tweet->{user}{screen_name}",
             });
-        },
-        on_eof => sub {
-            undef $listener;
-        },
-    );
-    warn "Twitter stream is available at /chat/twitter\n";
+        };
+    };
+
+    if (try { require AnyEvent::Twitter::Stream }) {
+        my $listener; $listener = AnyEvent::Twitter::Stream->new(
+            username => $ENV{TWITTER_USERNAME},
+            password => $ENV{TWITTER_PASSWORD},
+            method   => "sample",
+            on_tweet => $tweet_cb->("twitter"),
+            on_eof => sub { undef $listener },
+        );
+        warn "Twitter stream is available at /chat/twitter\n";
+    }
+
+    if (try { require AnyEvent::Twitter }) {
+        my $cb = $tweet_cb->("twitter_friends");
+        my $client = AnyEvent::Twitter->new(
+            username => $ENV{TWITTER_USERNAME},
+            password => $ENV{TWITTER_PASSWORD},
+        );
+        $client->reg_cb(statuses_friends => sub {
+            scalar $client;
+            my $self = shift;
+            for (@_) { $cb->($_->[1]) }
+        });
+        $client->receive_statuses_friends;
+        $client->start;
+    }
 }
 
 if (__FILE__ eq $0) {
@@ -205,4 +226,3 @@ if (__FILE__ eq $0) {
 } else {
     return $app;
 }
-
