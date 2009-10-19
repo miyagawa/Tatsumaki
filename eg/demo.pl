@@ -188,7 +188,7 @@ if ($ENV{TWITTER_USERNAME}) {
                 name   => $tweet->{user}{screen_name},
                 avatar => $tweet->{user}{profile_image_url},
                 text   => $tweet->{text},
-                ident  => "http://twitter.com/$tweet->{user}{screen_name}",
+                ident  => "http://twitter.com/$tweet->{user}{screen_name}/status/$tweet->{id}",
             });
         };
     };
