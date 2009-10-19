@@ -46,7 +46,7 @@ $(function(){
       var message = $('<td/>').addClass('chat-message');
       if (e.text) message.text(e.text);
       if (e.html) message.html(e.html);
-      message.find('a').oembed();
+      message.find('a').oembed(null, { embedMethod: "append" });
       var name = e.name || (e.ident ? e.ident.split('@')[0] : null);
       if (name)
         message.prepend($('<span/>').addClass('name').text(name+ ': '));
