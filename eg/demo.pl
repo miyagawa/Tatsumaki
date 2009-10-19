@@ -247,7 +247,6 @@ if ($ENV{SUPERFEEDR_JID} && try { require AnyEvent::Superfeedr }) {
     my $mq = Tatsumaki::MessageQueue->instance("superfeedr");
     my $entry_cb = sub {
         my($entry, $feed_uri) = @_;
-        warn $feed_uri;
         my $host = URI->new($feed_uri)->host;
         $mq->publish({
             type => "message", address => $host, time => scalar localtime,
