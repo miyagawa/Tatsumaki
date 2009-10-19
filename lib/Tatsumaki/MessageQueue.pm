@@ -52,7 +52,7 @@ sub publish {
 
         if ($session->[PERSISTENT]) {
             $session->[CV]->cb($cb); # poll forever
-        } else {
+        } elsif ($cb) {
             # garbage collection
             $session->[TIMER] = AE::timer 300, 0, sub {
                 delete $self->sessions->{$sid};
