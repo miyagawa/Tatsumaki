@@ -46,7 +46,7 @@ $(function(){
       var message = $('<td/>').addClass('chat-message');
       if (e.text) message.text(e.text);
       if (e.html) message.html(e.html);
-      message.find('a.oembed').oembed();
+      message.find('a').oembed();
 
       var meta = $('<td/>').addClass('meta').text(' (' + e.time + ' from ' + e.address + ')');
       $('#messages').prepend($('<tr/>').addClass('message').append(avatar).append(message).append(meta));

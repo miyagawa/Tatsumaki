@@ -123,7 +123,7 @@ sub post {
 sub format_message {
     my($self, $text) = @_;
     $text =~ s{ (https?://\S+) | ([&<>"']+) }
-              { $1 ? do { my $url = HTML::Entities::encode($1); qq(<a href="$url" class="oembed">$url</a>) } :
+              { $1 ? do { my $url = HTML::Entities::encode($1); qq(<a target="_blank" href="$url">$url</a>) } :
                 $2 ? HTML::Entities::encode($2) : '' }egx;
     $text;
 }
@@ -187,7 +187,7 @@ if ($ENV{TWITTER_USERNAME}) {
                 type   => "message", address => 'twitter.com', time => scalar localtime,
                 name   => $tweet->{user}{screen_name},
                 avatar => $tweet->{user}{profile_image_url},
-                text   => $tweet->{text},
+                html   => ChatPostHandler->format_message($tweet->{text}), # FIXME
                 ident  => "http://twitter.com/$tweet->{user}{screen_name}/status/$tweet->{id}",
             });
         };
