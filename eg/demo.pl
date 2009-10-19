@@ -271,6 +271,29 @@ if ($ENV{SUPERFEEDR_JID} && try { require AnyEvent::Superfeedr }) {
     warn "Superfeedr channel is available at /chat/superfeedr\n";
 }
 
+if ($ENV{ATOM_STREAM} && try { require AnyEvent::Atom::Stream }) {
+    my $mq = Tatsumaki::MessageQueue->instance("sixapart");
+    my $entry_cb = sub {
+        my $feed = shift;
+        my $host = URI->new($feed->link->href)->host;
+        for my $entry ($feed->entries) {
+            $mq->publish({
+                type => "message", address => $host, time => scalar localtime,
+                name => $feed->title,
+                avatar => "http://www.google.com/s2/favicons?domain=$host",
+                html  => $entry->title,
+                ident => $entry->link->href,
+            });
+        }
+    };
+    my $client; $client = AnyEvent::Atom::Stream->new(
+        callback => $entry_cb,
+        on_disconnect => sub { delete $client->{_guard} },
+    );
+    $client->{_guard} = $client->connect("http://updates.sixapart.com/atom-stream.xml");
+    warn "Six Apart update stream is available at /chat/sixapart\n";
+}
+
 if (__FILE__ eq $0) {
     require Tatsumaki::Server;
     Tatsumaki::Server->new(port => 9999)->run($app);
