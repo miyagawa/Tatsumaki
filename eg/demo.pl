@@ -68,7 +68,9 @@ use Tatsumaki::MessageQueue;
 sub get {
     my($self, $channel) = @_;
     my $mq = Tatsumaki::MessageQueue->instance($channel);
-    $mq->poll_once(sub { $self->on_new_event(@_) });
+    my $session = $self->request->param('session')
+        or Tatsumaki::Error::HTTP->throw(500, "'session' needed");
+    $mq->poll_once($session, sub { $self->on_new_event(@_) });
 }
 
 sub on_new_event {
@@ -83,11 +85,14 @@ __PACKAGE__->asynchronous(1);
 
 sub get {
     my($self, $channel) = @_;
-    my $mq = Tatsumaki::MessageQueue->instance($channel);
+
+    my $session = $self->request->param('session')
+        or Tatsumaki::Error::HTTP->throw(500, "'session' needed");
 
     $self->multipart_xhr_push(1);
 
-    $mq->poll(sub {
+    my $mq = Tatsumaki::MessageQueue->instance($channel);
+    $mq->poll($session, sub {
         my @events = @_;
         for my $event (@events) {
             $self->stream_write($event);
@@ -155,6 +160,10 @@ $app->template_path(dirname(__FILE__) . "/templates");
 # TODO this should be part of core
 use Plack::Middleware::Static;
 $app = Plack::Middleware::Static->wrap($app, path => qr/^\/static/, root => dirname(__FILE__));
+
+# TODO should this be in Server
+use Plack::Middleware::Writer;
+$app = Plack::Middleware::Writer->wrap($app);
 
 # TODO this should be an external services module
 if ($ENV{TWITTER_USERNAME}) {

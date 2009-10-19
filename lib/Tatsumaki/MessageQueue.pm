@@ -2,9 +2,9 @@ package Tatsumaki::MessageQueue;
 use strict;
 use Moose;
 
-has channel => (is => 'rw', isa => 'Str');
-has backlog => (is => 'rw', isa => 'ArrayRef', default => sub { [] });
-has waiters => (is => 'rw', isa => 'ArrayRef', default => sub { [] });
+has channel  => (is => 'rw', isa => 'Str');
+has backlog  => (is => 'rw', isa => 'ArrayRef', default => sub { [] });
+has sessions => (is => 'rw', isa => 'HashRef', default => sub { +{} });
 
 our $BacklogLength = 30; # TODO configurable
 
@@ -30,38 +30,45 @@ sub poll_backlog {
 sub publish {
     my($self, @events) = @_;
 
-    my @persistent;
-    for my $w (@{$self->waiters}) {
-        my $cb = $w->[0]->cb;
-        $w->[0]->send(@events);
-        if ($w->[1]) {
-            push @persistent, do {
-                my $cv = AE::cv;
-                $cv->cb($cb);
-                [ $cv, 1 ];
+    for my $sid (keys %{$self->sessions}) {
+        my $session = $self->sessions->{$sid};
+        my $cb = $session->[0]->cb;
+
+        $session->[0]->send(@events);
+
+        my $cv = AE::cv;
+        $session->[0] = $cv;
+
+        if ($session->[1]) {
+            $cv->cb($cb); # poll forever
+        } else {
+            # garbage collection
+            $session->[2] = AE::timer 300, 0, sub {
+                delete $self->sessions->{$sid};
             };
         }
     }
     $self->append_backlog(@events);
-    $self->waiters(\@persistent);
 }
 
 sub poll_once {
-    my $self = shift;
-    # FIXME If publish happens between poll -> poll then the events doesn't get delivered
-    # poll should first check if there's anything left for this client
-    my $cb = shift;
-    my $cv = AE::cv;
-    $cv->cb(sub { $cb->($_[0]->recv) });
-    push @{$self->waiters}, [ $cv, 0 ];
+    my($self, $sid, $cb, $timeout) = @_;
+
+    my $session = $self->sessions->{$sid} ||= [ AE::cv, 0, undef ];
+    $session->[0]->cb(sub { $cb->($_[0]->recv) });
+
+    # reset garbage collection timeout with the long-poll timeout
+    $session->[2] = AE::timer $timeout || 55, 0, sub {
+        $session->[0]->send();
+        $session->[0] = AE::cv;
+    };
 }
 
 sub poll {
-    my $self = shift;
-    my $cb = shift;
+    my($self, $sid, $cb) = @_;
     my $cv = AE::cv;
     $cv->cb(sub { $cb->($_[0]->recv) });
-    push @{$self->waiters}, [ $cv, 1 ];
+    $self->sessions->{$sid} = [ $cv, 1 ];
 }
 
 1;
