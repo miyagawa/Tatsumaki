@@ -180,10 +180,11 @@ use Try::Tiny;
 if ($ENV{TWITTER_USERNAME}) {
     my $tweet_cb = sub {
         my $channel = shift;
+        my $mq = Tatsumaki::MessageQueue->instance($channel);
         return sub {
             my $tweet = shift;
             return unless $tweet->{user}{screen_name};
-            Tatsumaki::MessageQueue->instance($channel)->publish({
+            $mq->publish({
                 type   => "message", address => 'twitter.com', time => scalar localtime,
                 name   => $tweet->{user}{name},
                 avatar => $tweet->{user}{profile_image_url},
@@ -217,6 +218,29 @@ if ($ENV{TWITTER_USERNAME}) {
         });
         $client->receive_statuses_friends;
         $client->start;
+        warn "Twitter Friends timeline is available at /chat/twitter_friends\n";
+    }
+}
+
+if ($ENV{FRIENDFEED_USERNAME}) {
+    if (try { require AnyEvent::FriendFeed::Realtime }) {
+        my $mq = Tatsumaki::MessageQueue->instance("friendfeed");
+        my $entry_cb = sub {
+            my $entry = shift;
+            $mq->publish({
+                type => "message", address => 'friendfeed.com', time => scalar localtime,
+                name => $entry->{from}{name},
+                avatar => "http://friendfeed-api.com/v2/picture/$entry->{from}{id}",
+                html => $entry->{body},
+                ident => $entry->{url},
+            });
+        };
+        my $client; $client = AnyEvent::FriendFeed::Realtime->new(
+            request => "/feed/$ENV{FRIENDFEED_USERNAME}/friends",
+            on_entry => $entry_cb,
+            on_error => sub { $client },
+        );
+        warn "FriendFeed stream is available at /chat/friendfeed\n";
     }
 }
 
