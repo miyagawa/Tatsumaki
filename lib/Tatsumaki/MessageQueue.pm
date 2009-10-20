@@ -52,9 +52,9 @@ sub publish {
 
         if ($session->{persistent}) {
             $session->{cv}->cb($cb); # poll forever
-        } elsif ($cb) {
-            # garbage collection
-            $session->{timer} = AE::timer 300, 0, sub {
+        } elsif ($cb or !$session->{timer}) {
+            # no reconnection for 30 seconds: clear the session
+            $session->{timer} = AE::timer 30, 0, sub {
                 delete $self->sessions->{$sid};
             };
         }
@@ -72,8 +72,13 @@ sub poll_once {
 
     # reset garbage collection timeout with the long-poll timeout
     $session->{timer} = AE::timer $timeout || 55, 0, sub {
-        $session->{cv}->send();
-        $session->{cv} = AE::cv;
+        try {
+            $session->{cv}->send();
+            $session->{cv} = AE::cv;
+            $session->{timer} = undef;
+        } catch {
+            /Broken pipe/ and delete $self->sessions->{$sid};
+        };
     };
 }
 
