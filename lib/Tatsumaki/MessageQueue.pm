@@ -56,7 +56,6 @@ sub publish {
         } elsif ($cb or !$session->{timer}) {
             # no reconnection for 30 seconds: clear the session
             $session->{timer} = AE::timer 30, 0, sub {
-                Scalar::Util::weaken $self;
                 delete $self->sessions->{$sid};
             };
         }
