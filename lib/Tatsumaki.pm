@@ -104,7 +104,8 @@ application does server push with C<stream_write>, you need a server
 that supports C<psgi.nonblocking> (and C<psgi.streaming>) as well.
 
 Currently Tatsumaki asynchronous application is supposed to run on
-Tatsumaki::Server, Plack::Server::AnyEvent and Plack::Server::Coro.
+Tatsumaki::Server, Plack::Server::AnyEvent, Plack::Server::Coro and
+Plack::Server::POE.
 
 If C<asynchronous> is not used, your application is supposed to run in
 any PSGI standard environments, including blocking multiprocess
