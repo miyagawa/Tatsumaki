@@ -16,11 +16,12 @@ sub call {
     return $res if $caller_supports_streaming;
 
     if (ref $res eq 'CODE') {
-        $env->{'psgi.errors'}->print("psgi.nonblocking is off: running $env->{PATH_INFO} in a blocking mode\n");
+        $env->{'psgi.errors'}->print("psgi.streaming is off: running $env->{PATH_INFO} in a blocking mode\n");
         my $use_writer;
         $res->(sub {
             $res = shift;
             unless (defined $res->[2]) {
+                $env->{'psgi.errors'}->print("Buffering the output of $env->{PATH_INFO}: This might cause a deadlock");
                 $use_writer = 1;
                 my($closed, @body);
                 $res->[2] = \@body;
