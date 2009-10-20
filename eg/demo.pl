@@ -70,6 +70,7 @@ sub get {
     my $mq = Tatsumaki::MessageQueue->instance($channel);
     my $session = $self->request->param('session')
         or Tatsumaki::Error::HTTP->throw(500, "'session' needed");
+    $session = rand(1) if $session eq 'dummy'; # for benchmarking stuff
     $mq->poll_once($session, sub { $self->on_new_event(@_) });
 }
 
