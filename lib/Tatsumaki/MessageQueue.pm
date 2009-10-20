@@ -48,6 +48,7 @@ sub publish {
             };
         } else {
             # between long poll comet: buffer the events
+            # TODO: limit buffer length
             push @{$session->{buffer}}, @events;
         }
 
