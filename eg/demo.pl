@@ -171,8 +171,8 @@ $app->template_path(dirname(__FILE__) . "/templates");
 use Plack::Middleware::Static;
 $app = Plack::Middleware::Static->wrap($app, path => qr/^\/static/, root => dirname(__FILE__));
 
-use Tatsumaki::Middleware::Blocking;
-$app = Tatsumaki::Middleware::Blocking->wrap($app);
+use Tatsumaki::Middleware::BlockingFallback;
+$app = Tatsumaki::Middleware::BlockingFallback->wrap($app);
 
 # TODO this should be an external services module
 use Try::Tiny;

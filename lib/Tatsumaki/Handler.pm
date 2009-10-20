@@ -86,14 +86,17 @@ sub run {
     }
 
     if ($self->is_asynchronous) {
-        my $cv = AE::cv;
-        $self->condvar($cv);
-        $self->request->env->{'tatsumaki.block'} = sub { $cv->recv };
+        $self->condvar(my $cv = AE::cv);
+        $self->request->env->{'psgix.block.response'} = sub { $cv->recv };
         return sub {
             my $start_response = shift;
             $cv->cb(sub {
                 my $w = $start_response->($_[0]->recv);
-                $self->writer($w) if $w;
+                if ($w) {
+                    $self->writer($w);
+                    $self->condvar(my $cv2 = AE::cv);
+                    $self->request->env->{'psgix.block.body'} = sub { $cv2->recv };
+                }
             });
             $self->$method(@{$self->args});
         };
@@ -178,6 +181,7 @@ sub finish {
     $self->flush(1);
     if ($self->writer) {
         $self->writer->close;
+        $self->condvar->send;
     } elsif ($self->condvar) {
         $self->condvar->send($self->response->finalize);
     }
