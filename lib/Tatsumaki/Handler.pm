@@ -68,10 +68,22 @@ sub _build_response {
     $self->request->new_response(200, [ 'Content-Type' => 'text/html; charset=utf-8' ]);
 }
 
+my $supported;
+
+sub supported_method {
+    my($self, $method) = @_;
+    $supported ||= +{ map { $_ => 1 } qw( head get post put delete ) };
+    return $supported->{$method};
+}
+
 sub run {
     my $self = shift;
+
     my $method = lc $self->request->method;
-    # TODO supported_methods
+    unless ($self->supported_method($method)) {
+        Tatsumaki::Error::HTTP->throw(400);
+    }
+
     if ($self->is_asynchronous) {
         unless ($self->request->env->{'psgi.streaming'}) {
             Tatsumaki::Error::HTTP->throw(500, "asynchronous handlers need PSGI servers with psgi.streaming");
