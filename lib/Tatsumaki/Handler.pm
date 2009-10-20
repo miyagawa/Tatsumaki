@@ -80,17 +80,14 @@ sub run {
         $self->condvar($cv);
         return sub {
             my $start_response = shift;
-            if ($self->request->env->{'psgi.nonblocking'}) {
-                $cv->cb(sub {
-                    my $w = $start_response->($_[0]->recv);
-                    $self->writer($w) if $w;
-                });
-                $self->$method(@{$self->args});
-            } else {
-                $self->log("psgi.nonblocking is off: running " . ref($self) .  " in a blocking mode\n");
-                $self->$method(@{$self->args});
-                my $w = $start_response->($cv->recv);
+            $cv->cb(sub {
+                my $w = $start_response->($_[0]->recv);
                 $self->writer($w) if $w;
+            });
+            $self->$method(@{$self->args});
+            unless ($self->request->env->{'psgi.nonblocking'}) {
+                $self->log("psgi.nonblocking is off: running " . ref($self) .  " in a blocking mode\n");
+                $cv->recv;
             }
         };
     } else {
