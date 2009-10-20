@@ -2,6 +2,7 @@ package Tatsumaki::MessageQueue;
 use strict;
 use Moose;
 use Try::Tiny;
+use Scalar::Util;
 
 has channel  => (is => 'rw', isa => 'Str');
 has backlog  => (is => 'rw', isa => 'ArrayRef', default => sub { [] });
@@ -55,6 +56,7 @@ sub publish {
         } elsif ($cb or !$session->{timer}) {
             # no reconnection for 30 seconds: clear the session
             $session->{timer} = AE::timer 30, 0, sub {
+                Scalar::Util::weaken $self;
                 delete $self->sessions->{$sid};
             };
         }
@@ -72,6 +74,7 @@ sub poll_once {
 
     # reset garbage collection timeout with the long-poll timeout
     $session->{timer} = AE::timer $timeout || 55, 0, sub {
+        Scalar::Util::weaken $session;
         try {
             $session->{cv}->send();
             $session->{cv} = AE::cv;
