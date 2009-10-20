@@ -44,7 +44,8 @@ sub publish {
                 $session->{cv} = AE::cv;
                 $session->{buffer} = [];
             } catch {
-                /Broken pipe/ and delete $self->sessions->{$sid};
+                $_->isa('Tatsumaki::Error::ClientDisconnect')
+                    and delete $self->sessions->{$sid};
             };
         } else {
             # between long poll comet: buffer the events
@@ -80,7 +81,8 @@ sub poll_once {
             $session->{cv} = AE::cv;
             $session->{timer} = undef;
         } catch {
-            /Broken pipe/ and delete $self->sessions->{$sid};
+            $_->isa('Tatsumaki::Error::ClientDisconnect')
+                and delete $self->sessions->{$sid};
         };
     };
 }

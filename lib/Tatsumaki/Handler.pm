@@ -5,6 +5,7 @@ use Encode ();
 use Moose;
 use MIME::Base64 ();
 use JSON;
+use Try::Tiny;
 use Tatsumaki::Error;
 
 has application => (is => 'rw', isa => 'Tatsumaki::Application');
@@ -129,9 +130,20 @@ sub get_chunk {
     }
 }
 
+sub _write {
+    my $self = shift;
+    my @buf  = @_;
+    try {
+        $self->get_writer->write(@buf);
+    } catch {
+        /Broken pipe/ and Tatsumaki::Error::ClientDisconnect->throw;
+        die $_;
+    }
+}
+
 sub stream_write {
     my $self = shift;
-    $self->get_writer->write($self->get_chunk(@_));
+    $self->_write($self->get_chunk(@_));
 }
 
 sub write {
@@ -144,7 +156,7 @@ sub flush {
     my($is_final) = @_;
 
     if ($self->writer) {
-        $self->writer->write(join '', @{$self->_write_buffer});
+        $self->_write(join '', @{$self->_write_buffer}) if @{$self->_write_buffer};
         $self->_write_buffer([]);
     } elsif (!$self->is_asynchronous || $is_final) {
         my $body = $self->response->body || [];

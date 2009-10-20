@@ -3,6 +3,10 @@ use strict;
 use Moose;
 with 'Throwable';
 
+package Tatsumaki::Error::ClientDisconnect;
+use Moose;
+extends 'Tatsumaki::Error';
+
 package Tatsumaki::Error::HTTP;
 use Moose;
 use HTTP::Status;
