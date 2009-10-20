@@ -85,11 +85,9 @@ sub run {
     }
 
     if ($self->is_asynchronous) {
-        unless ($self->request->env->{'psgi.streaming'}) {
-            Tatsumaki::Error::HTTP->throw(500, "asynchronous handlers need PSGI servers with psgi.streaming");
-        }
         my $cv = AE::cv;
         $self->condvar($cv);
+        $self->request->env->{'tatsumaki.block'} = sub { $cv->recv };
         return sub {
             my $start_response = shift;
             $cv->cb(sub {
@@ -97,10 +95,6 @@ sub run {
                 $self->writer($w) if $w;
             });
             $self->$method(@{$self->args});
-            unless ($self->request->env->{'psgi.nonblocking'}) {
-                $self->log("psgi.nonblocking is off: running " . ref($self) .  " in a blocking mode\n");
-                $cv->recv;
-            }
         };
     } else {
         $self->$method(@{$self->args});

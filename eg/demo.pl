@@ -171,9 +171,8 @@ $app->template_path(dirname(__FILE__) . "/templates");
 use Plack::Middleware::Static;
 $app = Plack::Middleware::Static->wrap($app, path => qr/^\/static/, root => dirname(__FILE__));
 
-# TODO should this be in Server
-use Plack::Middleware::Writer;
-$app = Plack::Middleware::Writer->wrap($app);
+use Tatsumaki::Middleware::Blocking;
+$app = Tatsumaki::Middleware::Blocking->wrap($app);
 
 # TODO this should be an external services module
 use Try::Tiny;
