@@ -21,7 +21,7 @@ sub call {
         $res->(sub {
             $res = shift;
             unless (defined $res->[2]) {
-                $env->{'psgi.errors'}->print("Buffering the output of $env->{PATH_INFO}: This might cause a deadlock");
+                $env->{'psgi.errors'}->print("Buffering the output of $env->{PATH_INFO}: This might cause a deadlock\n");
                 $use_writer = 1;
                 my($closed, @body);
                 $res->[2] = \@body;
