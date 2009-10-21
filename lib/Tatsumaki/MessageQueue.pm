@@ -18,6 +18,11 @@ sub instance {
     $instances{$name} ||= $class->new(channel => $name);
 }
 
+sub backlog_events {
+    my $self = shift;
+    reverse grep defined, @{$self->backlog};
+}
+
 sub append_backlog {
     my($self, @events) = @_;
     my @new_backlog = (reverse(@events), @{$self->backlog});
@@ -29,9 +34,7 @@ sub publish {
 
     for my $sid (keys %{$self->sessions}) {
         my $session = $self->sessions->{$sid};
-        my $cb = $session->{cv}->cb;
-
-        if ($cb) {
+        if ($session->{cv}->cb) {
             # currently listening: flush and send the events right away
             my @ev = (@{$session->{buffer}}, @events);
             $self->flush_events($sid, @ev);
@@ -40,10 +43,6 @@ sub publish {
             # TODO: limit buffer length
             warn "Buffering new events for $sid" if DEBUG;
             push @{$session->{buffer}}, @events;
-        }
-
-        if ($session->{persistent}) {
-            $session->{cv}->cb($cb); # poll forever
         }
     }
     $self->append_backlog(@events);
@@ -54,17 +53,27 @@ sub flush_events {
 
     my $session = $self->sessions->{$sid} or return;
     try {
+        my $cb = $session->{cv}->cb;
         $session->{cv}->send(@events);
         $session->{cv} = AE::cv;
         $session->{buffer} = [];
-        $session->{timer} = AE::timer 30, 0, sub {
-            Scalar::Util::weaken $self;
-            warn "Sweep $sid (no long-poll reconnect)" if DEBUG;
+
+        if ($session->{persistent}) {
+            $session->{cv}->cb($cb);
+        } else {
+            $session->{timer} = AE::timer 30, 0, sub {
+                Scalar::Util::weaken $self;
+                warn "Sweep $sid (no long-poll reconnect)" if DEBUG;
+                undef $session;
+                delete $self->sessions->{$sid};
+            };
+        }
+    } catch {
+        /Tatsumaki::Error::ClientDisconnect/ and do {
+            warn "Client $sid disconnected" if DEBUG;
             undef $session;
             delete $self->sessions->{$sid};
-        } unless $session->{persistent};
-    } catch {
-        /Tatsumaki::Error::ClientDisconnect/ and delete $self->sessions->{$sid};
+        };
     };
 }
 
@@ -88,18 +97,22 @@ sub poll_once {
 
     # flush backlog for a new session
     if ($is_new) {
-        my @events = reverse grep defined, @{$self->backlog};
+        my @events = $self->backlog_events;
         $self->flush_events($sid, @events) if @events;
     }
 }
 
 sub poll {
     my($self, $sid, $cb) = @_;
+
     my $cv = AE::cv;
     $cv->cb(sub { $cb->($_[0]->recv) });
-    $self->sessions->{$sid} = {
+    my $s = $self->sessions->{$sid} = {
         cv => $cv, persistent => 1, buffer => [],
     };
+
+    my @events = $self->backlog_events;
+    $self->flush_events($sid, @events) if @events;
 }
 
 1;
