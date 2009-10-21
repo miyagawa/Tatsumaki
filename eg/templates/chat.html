@@ -70,16 +70,6 @@ $(function(){
 
   if ($.cookie(cookieName))
     $('#ident').attr('value', $.cookie(cookieName));
-  $.ajax({
-    url: '/chat/<?= $channel ?>/backlog?' + Math.random(),
-    method: 'get',
-    dataType: 'json',
-    success: function(r) {
-      $.each(r, function(i, e) {
-        onNewEvent(e);
-      });
-    }
-  });
 });
 </script>
 <link rel="stylesheet" href="/static/screen.css" />

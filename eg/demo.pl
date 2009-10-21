@@ -129,21 +129,6 @@ sub format_message {
     $text;
 }
 
-package ChatBacklogHandler;
-use base qw(Tatsumaki::Handler);
-__PACKAGE__->asynchronous(1);
-
-sub get {
-    my($self, $channel) = @_;
-
-    my $mq = Tatsumaki::MessageQueue->instance($channel);
-    $mq->poll_backlog(20, sub {
-        my @events = @_;
-        $self->write(\@events);
-        $self->finish;
-    });
-}
-
 package ChatRoomHandler;
 use base qw(Tatsumaki::Handler);
 
@@ -161,7 +146,6 @@ my $app = Tatsumaki::Application->new([
     '/chat/(\w+)/poll'  => 'ChatPollHandler',
     '/chat/(\w+)/mxhrpoll'  => 'ChatMultipartPollHandler',
     '/chat/(\w+)/post'  => 'ChatPostHandler',
-    '/chat/(\w+)/backlog' => 'ChatBacklogHandler',
     '/chat/(\w+)' => 'ChatRoomHandler',
     '/' => 'MainHandler',
 ]);

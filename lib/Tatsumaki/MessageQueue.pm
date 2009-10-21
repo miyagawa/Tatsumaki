@@ -23,12 +23,6 @@ sub append_backlog {
     $self->backlog([ splice @new_backlog, 0, $BacklogLength ]);
 }
 
-sub poll_backlog {
-    my($self, $length, $cb) = @_;
-    my @events = grep defined, @{$self->backlog}[0..$length-1];
-    $cb->(reverse @events);
-}
-
 sub publish {
     my($self, @events) = @_;
 
@@ -39,13 +33,7 @@ sub publish {
         if ($cb) {
             # currently listening: flush and send the events right away
             my @ev = (@{$session->{buffer}}, @events);
-            try {
-                $session->{cv}->send(@ev);
-                $session->{cv} = AE::cv;
-                $session->{buffer} = [];
-            } catch {
-                /Tatsumaki::Error::ClientDisconnect/ and delete $self->sessions->{$sid};
-            };
+            $self->flush_events($sid, @ev);
         } else {
             # between long poll comet: buffer the events
             # TODO: limit buffer length
@@ -54,35 +42,51 @@ sub publish {
 
         if ($session->{persistent}) {
             $session->{cv}->cb($cb); # poll forever
-        } elsif ($cb or !$session->{timer}) {
-            # no reconnection for 30 seconds: clear the session
-            $session->{timer} = AE::timer 30, 0, sub {
-                delete $self->sessions->{$sid};
-            };
         }
     }
     $self->append_backlog(@events);
 }
 
+sub flush_events {
+    my($self, $sid, @events) = @_;
+
+    my $session = $self->sessions->{$sid} or return;
+    try {
+        $session->{cv}->send(@events);
+        $session->{cv} = AE::cv;
+        $session->{buffer} = [];
+
+        # no reconnection for 30 seconds: clear the session
+        $session->{timer} = AE::timer 30, 0, sub {
+            delete $self->sessions->{$sid};
+        } unless $session->{persistent};
+    } catch {
+        /Tatsumaki::Error::ClientDisconnect/ and delete $self->sessions->{$sid};
+    };
+}
+
 sub poll_once {
     my($self, $sid, $cb, $timeout) = @_;
 
-    my $session = $self->sessions->{$sid} ||= {
-        cv => AE::cv, persistent => 0, buffer => [],
+    my $is_new;
+    my $session = $self->sessions->{$sid} ||= do {
+        $is_new = 1;
+        + { cv => AE::cv, persistent => 0, buffer => [] };
     };
+
     $session->{cv}->cb(sub { $cb->($_[0]->recv) });
 
     # reset garbage collection timeout with the long-poll timeout
     $session->{timer} = AE::timer $timeout || 55, 0, sub {
-        Scalar::Util::weaken $session;
-        try {
-            $session->{cv}->send();
-            $session->{cv} = AE::cv;
-            $session->{timer} = undef;
-        } catch {
-            /Tatsumaki::Error::ClientDisconnect/ and delete $self->sessions->{$sid};
-        };
+        Scalar::Util::weaken $self;
+        $self->flush_events($sid);
     };
+
+    # flush backlog for a new session
+    if ($is_new) {
+        my @events = reverse grep defined, @{$self->backlog};
+        $self->flush_events($sid, @events) if @events;
+    }
 }
 
 sub poll {
