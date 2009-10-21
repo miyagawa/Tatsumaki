@@ -57,7 +57,7 @@ sub flush_events {
         $session->{cv}->send(@events);
         $session->{cv} = AE::cv;
         $session->{buffer} = [];
-        $session->{timer} = AE::timer 5, 0, sub {
+        $session->{timer} = AE::timer 30, 0, sub {
             Scalar::Util::weaken $self;
             warn "Sweep $sid (no long-poll reconnect)" if DEBUG;
             undef $session;
@@ -80,7 +80,7 @@ sub poll_once {
     $session->{cv}->cb(sub { $cb->($_[0]->recv) });
 
     # reset garbage collection timeout with the long-poll timeout
-    $session->{timer} = AE::timer $timeout || 10, 0, sub {
+    $session->{timer} = AE::timer $timeout || 55, 0, sub {
         Scalar::Util::weaken $self;
         warn "Timing out $sid long-poll" if DEBUG;
         $self->flush_events($sid);
