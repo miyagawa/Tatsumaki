@@ -104,6 +104,7 @@ sub get {
 package ChatPostHandler;
 use base qw(Tatsumaki::Handler);
 use HTML::Entities;
+use Encode;
 
 sub post {
     my($self, $channel) = @_;
@@ -140,13 +141,15 @@ sub get {
 package main;
 use File::Basename;
 
+my $chat_re = '[\w\.\-]+';
+
 my $app = Tatsumaki::Application->new([
     '/stream' => 'StreamWriter',
     '/feed/(\w+)' => 'FeedHandler',
-    '/chat/(\w+)/poll'  => 'ChatPollHandler',
-    '/chat/(\w+)/mxhrpoll'  => 'ChatMultipartPollHandler',
-    '/chat/(\w+)/post'  => 'ChatPostHandler',
-    '/chat/(\w+)' => 'ChatRoomHandler',
+    "/chat/($chat_re)/poll" => 'ChatPollHandler',
+    "/chat/($chat_re)/mxhrpoll" => 'ChatMultipartPollHandler',
+    "/chat/($chat_re)/post" => 'ChatPostHandler',
+    "/chat/($chat_re)" => 'ChatRoomHandler',
     '/' => 'MainHandler',
 ]);
 
@@ -159,8 +162,9 @@ $app = Plack::Middleware::Static->wrap($app, path => qr/^\/static/, root => dirn
 use Tatsumaki::Middleware::BlockingFallback;
 $app = Tatsumaki::Middleware::BlockingFallback->wrap($app);
 
-# TODO this should be an external services module
+# TODO these should be an external services module
 use Try::Tiny;
+my @svc;
 if ($ENV{TWITTER_USERNAME}) {
     my $tweet_cb = sub {
         my $channel = shift;
@@ -187,6 +191,7 @@ if ($ENV{TWITTER_USERNAME}) {
             on_eof => sub { undef $listener },
         );
         warn "Twitter stream is available at /chat/twitter\n";
+        push @svc, $listener;
     }
 
     if (try { require AnyEvent::Twitter }) {
@@ -196,13 +201,13 @@ if ($ENV{TWITTER_USERNAME}) {
             password => $ENV{TWITTER_PASSWORD},
         );
         $client->reg_cb(statuses_friends => sub {
-            scalar $client;
             my $self = shift;
             for (@_) { $cb->($_->[1]) }
         });
         $client->receive_statuses_friends;
         $client->start;
         warn "Twitter Friends timeline is available at /chat/twitter_friends\n";
+        push @svc, $client;
     }
 }
 
@@ -221,9 +226,10 @@ if ($ENV{FRIENDFEED_USERNAME} && try { require AnyEvent::FriendFeed::Realtime })
     my $client; $client = AnyEvent::FriendFeed::Realtime->new(
         request => "/feed/$ENV{FRIENDFEED_USERNAME}/friends",
         on_entry => $entry_cb,
-        on_error => sub { $client },
+        on_error => sub { undef $client },
     );
     warn "FriendFeed stream is available at /chat/friendfeed\n";
+    push @svc, $client;
 }
 
 if ($ENV{SUPERFEEDR_JID} && try { require AnyEvent::Superfeedr }) {
@@ -245,7 +251,6 @@ if ($ENV{SUPERFEEDR_JID} && try { require AnyEvent::Superfeedr }) {
         jid => $ENV{SUPERFEEDR_JID},
         password => $ENV{SUPERFEEDR_PASSWORD},
         on_notification => sub {
-            scalar $superfeedr;
             my $notification = shift;
             for my $entry ($notification->entries) {
                 $entry_cb->($entry, $notification->feed_uri);
@@ -253,6 +258,7 @@ if ($ENV{SUPERFEEDR_JID} && try { require AnyEvent::Superfeedr }) {
         },
     );
     warn "Superfeedr channel is available at /chat/superfeedr\n";
+    push @svc, $superfeedr;
 }
 
 if ($ENV{ATOM_STREAM} && try { require AnyEvent::Atom::Stream }) {
@@ -272,15 +278,41 @@ if ($ENV{ATOM_STREAM} && try { require AnyEvent::Atom::Stream }) {
     };
     my $client; $client = AnyEvent::Atom::Stream->new(
         callback => $entry_cb,
-        on_disconnect => sub { delete $client->{_guard} },
+        on_disconnect => sub { undef $client },
     );
-    $client->{_guard} = $client->connect("http://updates.sixapart.com/atom-stream.xml");
+    $client->connect("http://updates.sixapart.com/atom-stream.xml");
     warn "Six Apart update stream is available at /chat/sixapart\n";
+    push @svc, $client;
+}
+
+if ($ENV{IRC_NICK} && $ENV{IRC_SERVER} && try { require AnyEvent::IRC::Client }) {
+    my($host, $port) = split /:/, $ENV{IRC_SERVER};
+    my $irc = AnyEvent::IRC::Client->new;
+    $irc->reg_cb(disconnect => sub { warn @_; undef $irc });
+    $irc->reg_cb(publicmsg => sub {
+        my($con, $channel, $packet) = @_;
+        $channel =~ s/\@.*$//; # bouncer (tiarra)
+        $channel =~ s/^#//;
+        if ($packet->{command} eq 'NOTICE' || $packet->{command} eq 'PRIVMSG') { # NOTICE for bouncer backlog
+            my $msg = $packet->{params}[1];
+            (my $who = $packet->{prefix}) =~ s/\!.*//;
+            my $mq = Tatsumaki::MessageQueue->instance($channel);
+            $mq->publish({
+                type => "message", address => $host, time => scalar localtime,
+                name => $who,
+                ident => "$who\@gmail.com", # let's just assume everyone's gmail :)
+                text => Encode::decode_utf8($msg),
+            });
+        }
+    });
+    $irc->connect($host, $port || 6667, { nick => $ENV{IRC_NICK}, password => $ENV{IRC_PASSWORD} });
+    push @svc, $irc;
 }
 
 if (__FILE__ eq $0) {
     require Tatsumaki::Server;
     Tatsumaki::Server->new(port => 9999)->run($app);
 } else {
+    $app->{_svc} = \@svc; # HACK: refcount
     return $app;
 }
