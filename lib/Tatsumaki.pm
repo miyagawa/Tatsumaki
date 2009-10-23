@@ -86,6 +86,13 @@ Tatsumaki - Non-blocking Web server and framework based on AnyEvent
       return $app->psgi_app;
   }
 
+=head1 WARNINGS
+
+This is my personal, toy and experimental project. The API will be
+added, updated or removed without any notice until it gets CPAN. As
+long as you're playing with git, keep that in mind, and don't blame me
+if one day your application stops running :)
+
 =head1 DESCRIPTION
 
 Tatsumaki is a toy port of Tornado for Perl using Plack (with
