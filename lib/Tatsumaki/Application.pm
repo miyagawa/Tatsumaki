@@ -20,13 +20,19 @@ around BUILDARGS => sub {
         my @rules;
         while (my($path, $handler) = splice @$handlers, 0, 2) {
             $path = qr/^$path/ unless ref $path eq 'RegExp';
-            push @rules, { path => $path, handler => $handler };
+            push @rules, { path => $path, handler => $handler }};
         }
         $class->$orig(_rules => \@rules, @_);
     } else {
         $class->$orig(@_);
     }
 };
+
+sub route {
+    my($self, $path, $handler) = @_;
+    $path = qr/^$path/ unless ref $path eq 'RegExp';
+    push @{$self->{_rules}, { path => $path, handler => $handler }};
+}
 
 sub dispatch {
     my($self, $path) = @_;
