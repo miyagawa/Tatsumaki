@@ -164,7 +164,7 @@ $app = Tatsumaki::Middleware::BlockingFallback->wrap($app);
 
 # TODO these should be an external services module
 use Try::Tiny;
-my @svc;
+our @svc;
 if ($ENV{TWITTER_USERNAME}) {
     my $tweet_cb = sub {
         my $channel = shift;
@@ -313,6 +313,5 @@ if (__FILE__ eq $0) {
     require Tatsumaki::Server;
     Tatsumaki::Server->new(port => 9999)->run($app);
 } else {
-    $app->{_svc} = \@svc; # HACK: refcount
     return $app;
 }
