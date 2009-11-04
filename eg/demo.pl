@@ -109,10 +109,8 @@ use Encode;
 sub post {
     my($self, $channel) = @_;
 
-    # TODO: decode should be done in the framework or middleware
     my $v = $self->request->params;
-    my $text = Encode::decode_utf8($v->{text});
-    my $html = $self->format_message($text);
+    my $html = $self->format_message($v->{text});
     my $mq = Tatsumaki::MessageQueue->instance($channel);
     $mq->publish({
         type => "message", html => $html, ident => $v->{ident},

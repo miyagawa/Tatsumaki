@@ -1,9 +1,8 @@
 package Tatsumaki::Application;
 use AnyEvent;
 use Moose;
-use Plack::Request;
-use Plack::Response;
 use Tatsumaki::Handler;
+use Tatsumaki::Request;
 use Text::MicroTemplate::File;
 use Try::Tiny;
 
@@ -51,7 +50,7 @@ sub psgi_app {
     my $self = shift;
     return sub {
         my $env = shift;
-        my $req = Plack::Request->new($env);
+        my $req = Tatsumaki::Request->new($env);
 
         my $handler = $self->dispatch($req->path)
             or return [ 404, [ 'Content-Type' => 'text/html' ], [ "404 Not Found" ] ];

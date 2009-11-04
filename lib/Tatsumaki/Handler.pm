@@ -10,8 +10,8 @@ use Tatsumaki::Error;
 
 has application => (is => 'rw', isa => 'Tatsumaki::Application');
 has condvar  => (is => 'rw', isa => 'AnyEvent::CondVar');
-has request  => (is => 'rw', isa => 'Plack::Request');
-has response => (is => 'rw', isa => 'Plack::Response', lazy_build => 1);
+has request  => (is => 'rw', isa => 'Tatsumaki::Request');
+has response => (is => 'rw', isa => 'Tatsumaki::Response', lazy_build => 1);
 has args     => (is => 'rw', isa => 'ArrayRef');
 has writer   => (is => 'rw');
 has mxhr     => (is => 'rw', isa => 'Bool');
