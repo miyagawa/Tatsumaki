@@ -4,6 +4,7 @@ use AnyEvent::HTTP ();
 use HTTP::Request::Common ();
 use HTTP::Request;
 use HTTP::Response;
+use Tatsumaki;
 use Moose;
 
 has timeout => (is => 'rw', isa => 'Int', default => sub { 30 });
