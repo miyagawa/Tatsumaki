@@ -1,5 +1,6 @@
 package Tatsumaki::Handler;
 use strict;
+use AnyEvent;
 use Carp ();
 use Encode ();
 use Moose;
