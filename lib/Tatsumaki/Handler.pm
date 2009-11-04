@@ -96,6 +96,14 @@ sub run {
         Tatsumaki::Error::HTTP->throw(400);
     }
 
+    my $catch = sub {
+        if ($_->isa('Tatsumaki::Error::HTTP')) {
+            return [ $_->code, [ 'Content-Type' => 'text/plain' ], [ $_->message ] ];
+        } else {
+            return [ 500, [ 'Content-Type' => 'text/plain' ], [ "Internal Server Error" ] ];
+        }
+    };
+
     if ($self->is_asynchronous) {
         $self->condvar(my $cv = AE::cv);
         $self->request->env->{'psgix.block.response'} = sub { $cv->recv };
@@ -111,21 +119,23 @@ sub run {
                         $self->request->env->{'psgix.block.body'} = sub { $cv2->recv };
                     }
                 } catch {
-                    my $res;
-                    if ($_->isa('Tatsumaki::Error::HTTP')) {
-                        $res = [ $_->code, [ 'Content-Type' => 'text/plain' ], [ $_->message ] ];
-                    } else {
-                        $res = [ 500, [ 'Content-Type' => 'text/plain' ], [ "Internal Server Error" ] ];
-                    }
-                    $start_response->($res);
+                    $start_response->($catch->());
                 };
             });
-            $self->$method(@{$self->args});
+
+            try { $self->$method(@{$self->args}) }
+            catch { $cv->croak($_) };
         };
     } else {
-        $self->$method(@{$self->args});
-        $self->flush;
-        return $self->response->finalize;
+        my $res = try {
+            $self->$method(@{$self->args});
+            $self->flush;
+            return $self->response->finalize;
+        } catch {
+            return $catch->();
+        };
+
+        return $res;
     }
 }
 

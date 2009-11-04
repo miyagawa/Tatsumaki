@@ -68,22 +68,11 @@ sub compile_psgi_app {
         my $handler = $self->dispatch($req->path)
             or return [ 404, [ 'Content-Type' => 'text/html' ], [ "404 Not Found" ] ];
 
-        my $res;
-        try {
-            $res = $handler->(
-                application => $self,
-                handler => $handler,
-                request => $req,
-            )->run;
-        } catch {
-            if ($_->isa('Tatsumaki::Error::HTTP')) {
-                $res = [ $_->code, [ 'Content-Type' => 'text/plain' ], [ $_->message ] ];
-            } else {
-                $res = [ 500, [ 'Content-Type' => 'text/plain' ], [ "Internal Server Error" ] ];
-            }
-        };
-
-        return $res;
+        my $res = $handler->(
+            application => $self,
+            handler => $handler,
+            request => $req,
+        )->run;
     };
 
     $app = Plack::Middleware::Static->wrap($app, path => sub { s/^\/static\/// }, root => $self->static_path);
