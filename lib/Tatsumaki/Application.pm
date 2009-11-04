@@ -53,6 +53,13 @@ sub dispatch {
 
 sub psgi_app {
     my $self = shift;
+    return $self->{psgi_app} ||= $self->compile_psgi_app;
+}
+
+sub compile_psgi_app {
+    my $self = shift;
+
+    Scalar::Util::weaken($self);
 
     my $app = sub {
         my $env = shift;

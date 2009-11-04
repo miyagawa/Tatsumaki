@@ -303,7 +303,7 @@ if ($ENV{IRC_NICK} && $ENV{IRC_SERVER} && try { require AnyEvent::IRC::Client })
 
 if (__FILE__ eq $0) {
     require Tatsumaki::Server;
-    Tatsumaki::Server->new(port => 9999)->run($app->psgi_app);
+    Tatsumaki::Server->new(port => 9999)->run($app);
 } else {
-    return $app->psgi_app;
+    return $app;
 }
