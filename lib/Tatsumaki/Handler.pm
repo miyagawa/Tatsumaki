@@ -77,6 +77,16 @@ sub supported_method {
     return $supported->{$method};
 }
 
+sub safe_cb {
+    my $self = shift;
+    my $cb = shift;
+    return sub {
+        my @args = @_;
+        try { $cb->(@args) }
+        catch { $self->condvar->croak($_) };
+    };
+}
+
 sub run {
     my $self = shift;
 
@@ -91,12 +101,23 @@ sub run {
         return sub {
             my $start_response = shift;
             $cv->cb(sub {
-                my $w = $start_response->($_[0]->recv);
-                if ($w) {
-                    $self->writer($w);
-                    $self->condvar(my $cv2 = AE::cv);
-                    $self->request->env->{'psgix.block.body'} = sub { $cv2->recv };
-                }
+                my $cv = shift;
+                try {
+                    my $w = $start_response->($cv->recv);
+                    if ($w) {
+                        $self->writer($w);
+                        $self->condvar(my $cv2 = AE::cv);
+                        $self->request->env->{'psgix.block.body'} = sub { $cv2->recv };
+                    }
+                } catch {
+                    my $res;
+                    if ($_->isa('Tatsumaki::Error::HTTP')) {
+                        $res = [ $_->code, [ 'Content-Type' => 'text/plain' ], [ $_->message ] ];
+                    } else {
+                        $res = [ 500, [ 'Content-Type' => 'text/plain' ], [ "Internal Server Error" ] ];
+                    }
+                    $start_response->($res);
+                };
             });
             $self->$method(@{$self->args});
         };
