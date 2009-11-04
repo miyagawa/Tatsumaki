@@ -3,6 +3,7 @@ use strict;
 use Moose;
 use Try::Tiny;
 use Scalar::Util;
+use Time::HiRes;
 use constant DEBUG => $ENV{TATSUMAKI_DEBUG};
 
 has channel  => (is => 'rw', isa => 'Str');
@@ -31,6 +32,10 @@ sub append_backlog {
 
 sub publish {
     my($self, @events) = @_;
+
+    for my $event (@events) {
+        $event->{time} ||= Time::HiRes::gettimeofday;
+    }
 
     for my $sid (keys %{$self->sessions}) {
         my $session = $self->sessions->{$sid};

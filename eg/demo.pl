@@ -117,7 +117,7 @@ sub post {
     $mq->publish({
         type => "message", html => $html, ident => $v->{ident},
         avatar => $v->{avatar}, name => $v->{name},
-        address => $self->request->address, time => scalar localtime(time),
+        address => $self->request->address,
     });
     $self->write({ success => 1 });
 }
@@ -173,7 +173,7 @@ if ($ENV{TWITTER_USERNAME}) {
             my $tweet = shift;
             return unless $tweet->{user}{screen_name};
             $mq->publish({
-                type   => "message", address => 'twitter.com', time => scalar localtime,
+                type   => "message", address => 'twitter.com',
                 name   => $tweet->{user}{name},
                 avatar => $tweet->{user}{profile_image_url},
                 html   => ChatPostHandler->format_message($tweet->{text}), # FIXME
@@ -216,7 +216,7 @@ if ($ENV{FRIENDFEED_USERNAME} && try { require AnyEvent::FriendFeed::Realtime })
     my $entry_cb = sub {
         my $entry = shift;
         $mq->publish({
-            type => "message", address => 'friendfeed.com', time => scalar localtime,
+            type => "message", address => 'friendfeed.com',
             name => $entry->{from}{name},
             avatar => "http://friendfeed-api.com/v2/picture/$entry->{from}{id}",
             html => $entry->{body},
@@ -239,7 +239,7 @@ if ($ENV{SUPERFEEDR_JID} && try { require AnyEvent::Superfeedr }) {
         my($entry, $feed_uri) = @_;
         my $host = URI->new($feed_uri)->host;
         $mq->publish({
-            type => "message", address => $host, time => scalar localtime,
+            type => "message", address => $host,
             name => $entry->title,
             avatar => "http://www.google.com/s2/favicons?domain=$host",
             html  => $entry->summary,
@@ -268,7 +268,7 @@ if ($ENV{ATOM_STREAM} && try { require AnyEvent::Atom::Stream }) {
         my $host = URI->new($feed->link->href)->host;
         for my $entry ($feed->entries) {
             $mq->publish({
-                type => "message", address => $host, time => scalar localtime,
+                type => "message", address => $host,
                 name => $feed->title,
                 avatar => "http://www.google.com/s2/favicons?domain=$host",
                 html  => $entry->title,
@@ -298,7 +298,7 @@ if ($ENV{IRC_NICK} && $ENV{IRC_SERVER} && try { require AnyEvent::IRC::Client })
             (my $who = $packet->{prefix}) =~ s/\!.*//;
             my $mq = Tatsumaki::MessageQueue->instance($channel);
             $mq->publish({
-                type => "message", address => $host, time => scalar localtime,
+                type => "message", address => $host,
                 name => $who,
                 ident => "$who\@gmail.com", # let's just assume everyone's gmail :)
                 text => Encode::decode_utf8($msg),

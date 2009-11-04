@@ -13,6 +13,7 @@
 <script src="/static/jquery.md5.js"></script>
 <script src="/static/jquery.cookie.js"></script>
 <script src="/static/jquery.oembed.js"></script>
+<script src="/static/pretty.js"></script>
 <script>
 var cookieName = 'tatsumaki_chat_ident';
 function doPost(el1, el) {
@@ -51,7 +52,13 @@ $(function(){
       if (name)
         message.prepend($('<span/>').addClass('name').text(name+ ': '));
 
-      var meta = $('<td/>').addClass('meta').text(' (' + e.time + ' from ' + e.address + ')');
+      var date = new Date(e.time * 1000);
+      var meta = $('<td/>').addClass('meta').append(
+        '(' +
+        '<span class="pretty-time" title="' + date.toUTCString() + '">' + date.toDateString() + '</span>' +
+        ' from ' + e.address + ')'
+      );
+      $('.pretty-time', meta).prettyDate();
       $('#messages').prepend($('<tr/>').addClass('message').append(avatar).append(message).append(meta));
     } catch(e) { if (console) console.log(e) };
   }
@@ -70,6 +77,8 @@ $(function(){
 
   if ($.cookie(cookieName))
     $('#ident').attr('value', $.cookie(cookieName));
+
+  window.setInterval(function(){ $(".pretty-time").prettyDate() }, 1000 * 30);
 });
 </script>
 <link rel="stylesheet" href="/static/screen.css" />
