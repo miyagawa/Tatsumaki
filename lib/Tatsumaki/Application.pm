@@ -56,7 +56,6 @@ sub psgi_app {
         my $handler = $self->dispatch($req->path)
             or return [ 404, [ 'Content-Type' => 'text/html' ], [ "404 Not Found" ] ];
 
-        # TODO: if you throw exception from nonblocking callback, there seems no way to catch it
         my $res;
         try {
             $res = $handler->(
