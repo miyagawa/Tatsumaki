@@ -152,13 +152,7 @@ my $app = Tatsumaki::Application->new([
 ]);
 
 $app->template_path(dirname(__FILE__) . "/templates");
-
-# TODO this should be part of core
-use Plack::Middleware::Static;
-$app = Plack::Middleware::Static->wrap($app, path => qr/^\/static/, root => dirname(__FILE__));
-
-use Tatsumaki::Middleware::BlockingFallback;
-$app = Tatsumaki::Middleware::BlockingFallback->wrap($app);
+$app->static_path(dirname(__FILE__) . "/static");
 
 # TODO these should be an external services module
 use Try::Tiny;
@@ -309,7 +303,7 @@ if ($ENV{IRC_NICK} && $ENV{IRC_SERVER} && try { require AnyEvent::IRC::Client })
 
 if (__FILE__ eq $0) {
     require Tatsumaki::Server;
-    Tatsumaki::Server->new(port => 9999)->run($app);
+    Tatsumaki::Server->new(port => 9999)->run($app->psgi_app);
 } else {
-    return $app;
+    return $app->psgi_app;
 }

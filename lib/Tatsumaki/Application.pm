@@ -6,10 +6,15 @@ use Tatsumaki::Request;
 use Text::MicroTemplate::File;
 use Try::Tiny;
 
+use Plack::Middleware::Static;
+use Tatsumaki::Middleware::BlockingFallback;
+
 use overload q(&{}) => sub { shift->psgi_app }, fallback => 1;
 
 has _rules => (is => 'rw', isa => 'ArrayRef');
 has template => (is => 'rw', isa => 'Text::MicroTemplate::File', lazy_build => 1, handles => [ 'render_file' ]);
+
+has static_path   => (is => 'rw', isa => 'Str', default => 'static');
 
 around BUILDARGS => sub {
     my $orig = shift;
@@ -48,7 +53,8 @@ sub dispatch {
 
 sub psgi_app {
     my $self = shift;
-    return sub {
+
+    my $app = sub {
         my $env = shift;
         my $req = Tatsumaki::Request->new($env);
 
@@ -72,6 +78,11 @@ sub psgi_app {
 
         return $res;
     };
+
+    $app = Plack::Middleware::Static->wrap($app, path => sub { s/^\/static\/// }, root => $self->static_path);
+    $app = Tatsumaki::Middleware::BlockingFallback->wrap($app);
+
+    $app;
 }
 
 sub _build_template {
