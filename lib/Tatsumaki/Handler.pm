@@ -78,7 +78,7 @@ sub supported_method {
     return $supported->{$method};
 }
 
-sub safe_cb {
+sub async_cb {
     my $self = shift;
     my $cb = shift;
     return sub {

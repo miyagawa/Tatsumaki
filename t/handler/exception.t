@@ -22,7 +22,7 @@ __PACKAGE__->asynchronous(1);
 
 sub get {
     my $self = shift;
-    my $t; $t = AE::timer 0, 0, $self->safe_cb(sub {
+    my $t; $t = AE::timer 0, 0, $self->async_cb(sub {
         Tatsumaki::Error::HTTP->throw(500, "Oops");
         undef $t;
     });
