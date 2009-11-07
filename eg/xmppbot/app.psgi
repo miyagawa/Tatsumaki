@@ -31,6 +31,7 @@ sub on_response {
     my $text   = $result->{responseData}{translatedText};
 
     $message->reply($text);
+    $self->finish;
 }
 
 package main;

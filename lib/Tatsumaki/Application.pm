@@ -101,11 +101,8 @@ sub template_path {
 
 sub add_service {
     my($self, $service) = @_;
-
-    my $application = $self;
-    Scalar::Util::weaken($application);
-    $service->start($application);
-
+    $service->application($self);
+    $service->start;
     push @{$self->services}, $service;
 }
 

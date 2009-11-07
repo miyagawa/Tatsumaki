@@ -36,6 +36,7 @@ sub _build_xmpp {
 
             return unless $msg->any_body;
 
+            # TODO refactor this
             my $req = POST "/_services/xmpp/chat", [ from => $msg->from, to => $acct->jid, body => $msg->body ];
             my $env = $req->to_psgi;
             $env->{'tatsumaki.xmpp'} = {
@@ -70,7 +71,6 @@ sub _build_xmpp {
 
 sub start {
     my($self, $application) = @_;
-    $self->application($application);
     $self->xmpp->start;
 }
 
