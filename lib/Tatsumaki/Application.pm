@@ -11,10 +11,11 @@ use Tatsumaki::Middleware::BlockingFallback;
 
 use overload q(&{}) => sub { shift->psgi_app }, fallback => 1;
 
-has _rules => (is => 'rw', isa => 'ArrayRef');
+has _rules   => (is => 'rw', isa => 'ArrayRef');
 has template => (is => 'rw', isa => 'Text::MicroTemplate::File', lazy_build => 1, handles => [ 'render_file' ]);
 
-has static_path   => (is => 'rw', isa => 'Str', default => 'static');
+has static_path => (is => 'rw', isa => 'Str', default => 'static');
+has services    => (is => 'rw', isa => 'ArrayRef[Tatsumaki::Service]', default => sub { [] });
 
 around BUILDARGS => sub {
     my $orig = shift;
@@ -97,6 +98,19 @@ sub template_path {
     }
     $self->template->{include_path};
 }
+
+sub add_service {
+    my($self, $service) = @_;
+
+    my $application = $self;
+    Scalar::Util::weaken($application);
+    $service->start($application);
+
+    push @{$self->services}, $service;
+}
+
+no Moose;
+__PACKAGE__->meta->make_immutable;
 
 1;
 
