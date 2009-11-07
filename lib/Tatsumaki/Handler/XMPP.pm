@@ -18,6 +18,14 @@ sub xmpp_message {
     );
 }
 
+sub prepare {
+    my $self = shift;
+
+    unless (exists $self->request->env->{'tatsumaki.xmpp'}) {
+        Tatsumaki::Error::HTTP->throw(400);
+    }
+}
+
 sub post {
     my $self = shift;
 
