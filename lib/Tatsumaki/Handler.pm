@@ -26,6 +26,8 @@ sub post   { Tatsumaki::Error::HTTP->throw(405) }
 sub put    { Tatsumaki::Error::HTTP->throw(405) }
 sub delete { Tatsumaki::Error::HTTP->throw(405) }
 
+sub prepare { }
+
 my $class_attr = {};
 
 sub is_asynchronous {
@@ -123,11 +125,16 @@ sub run {
                 };
             });
 
-            try { $self->$method(@{$self->args}) }
-            catch { $cv->croak($_) };
+            try {
+                $self->prepare;
+                $self->$method(@{$self->args});
+            } catch {
+                $cv->croak($_);
+            };
         };
     } else {
         my $res = try {
+            $self->prepare;
             $self->$method(@{$self->args});
             $self->flush;
             return $self->response->finalize;
