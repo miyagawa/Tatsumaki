@@ -39,12 +39,13 @@ sub route {
 }
 
 sub dispatch {
-    my($self, $path) = @_;
+    my($self, $req) = @_;
 
+    my $path = $req->path;
     for my $rule (@{$self->_rules}) {
         if ($path =~ $rule->{path}) {
             my $args = [ $1, $2, $3, $4, $5, $6, $7, $8, $9 ];
-            return sub { $rule->{handler}->new(@_, args => $args) };
+            return sub { $rule->{handler}->new(@_, application => $self, request => $req, args => $args)->run };
         }
     }
 
@@ -65,13 +66,10 @@ sub compile_psgi_app {
         my $env = shift;
         my $req = Tatsumaki::Request->new($env);
 
-        my $handler = $self->dispatch($req->path)
+        my $handler = $self->dispatch($req)
             or return [ 404, [ 'Content-Type' => 'text/html' ], [ "404 Not Found" ] ];
 
-        my $res = $handler->(
-            application => $self,
-            request => $req,
-        )->run;
+        my $res = $handler->()
     };
 
     $app = Plack::Middleware::Static->wrap($app, path => sub { s/^\/static\/// }, root => $self->static_path);
