@@ -2,6 +2,7 @@ use strict;
 use warnings;
 use Tatsumaki::Error;
 use Tatsumaki::Application;
+use Time::HiRes;
 
 package ChatPollHandler;
 use base qw(Tatsumaki::Handler);
@@ -60,6 +61,7 @@ sub post {
         type => "message", html => $html, ident => $v->{ident},
         avatar => $v->{avatar}, name => $v->{name},
         address => $self->request->address,
+        time => Time::HiRes::gettimeofday,
     });
     $self->write({ success => 1 });
 }
@@ -110,6 +112,7 @@ if ($ENV{TWITTER_USERNAME}) {
                 avatar => $tweet->{user}{profile_image_url},
                 html   => ChatPostHandler->format_message($tweet->{text}), # FIXME
                 ident  => "http://twitter.com/$tweet->{user}{screen_name}/status/$tweet->{id}",
+                time => Time::HiRes::gettimeofday,
             });
         };
     };
@@ -153,6 +156,7 @@ if ($ENV{FRIENDFEED_USERNAME} && try { require AnyEvent::FriendFeed::Realtime })
             avatar => "http://friendfeed-api.com/v2/picture/$entry->{from}{id}",
             html => $entry->{body},
             ident => $entry->{url},
+            time => Time::HiRes::gettimeofday,
         });
     };
     my $client; $client = AnyEvent::FriendFeed::Realtime->new(
@@ -176,6 +180,7 @@ if ($ENV{SUPERFEEDR_JID} && try { require AnyEvent::Superfeedr }) {
             avatar => "http://www.google.com/s2/favicons?domain=$host",
             html  => $entry->summary,
             ident => $entry->link->href,
+            time => Time::HiRes::gettimeofday,
         });
     };
     my $superfeedr; $superfeedr = AnyEvent::Superfeedr->new(
@@ -205,6 +210,7 @@ if ($ENV{ATOM_STREAM} && try { require AnyEvent::Atom::Stream }) {
                 avatar => "http://www.google.com/s2/favicons?domain=$host",
                 html  => $entry->title,
                 ident => $entry->link->href,
+                time => Time::HiRes::gettimeofday,
             });
         }
     };
@@ -234,6 +240,7 @@ if ($ENV{IRC_NICK} && $ENV{IRC_SERVER} && try { require AnyEvent::IRC::Client })
                 name => $who,
                 ident => "$who\@gmail.com", # let's just assume everyone's gmail :)
                 text => Encode::decode_utf8($msg),
+                time => Time::HiRes::gettimeofday,
             });
         }
     });
