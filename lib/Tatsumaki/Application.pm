@@ -71,7 +71,6 @@ sub compile_psgi_app {
 
         my $res = $handler->(
             application => $self,
-            handler => $handler,
             request => $req,
         )->run;
     };
