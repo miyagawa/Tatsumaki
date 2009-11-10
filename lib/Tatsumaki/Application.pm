@@ -45,7 +45,7 @@ sub dispatch {
     for my $rule (@{$self->_rules}) {
         if ($path =~ $rule->{path}) {
             my $args = [ $1, $2, $3, $4, $5, $6, $7, $8, $9 ];
-            return sub { $rule->{handler}->new(@_, application => $self, request => $req, args => $args)->run };
+            return $rule->{handler}->new(@_, application => $self, request => $req, args => $args);
         }
     }
 
@@ -69,7 +69,7 @@ sub compile_psgi_app {
         my $handler = $self->dispatch($req)
             or return [ 404, [ 'Content-Type' => 'text/html' ], [ "404 Not Found" ] ];
 
-        my $res = $handler->()
+        my $res = $handler->run;
     };
 
     $app = Plack::Middleware::Static->wrap($app, path => sub { s/^\/static\/// }, root => $self->static_path);
