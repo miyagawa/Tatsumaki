@@ -47,7 +47,6 @@ sub multipart_xhr_push {
     if ($_[0]) {
         Carp::croak("asynchronous should be set to do multipart XHR push")
             unless $self->is_asynchronous;
-        $self->response->header('Transfer-Encoding' => 'identity');
         $self->response->content_type('multipart/mixed; boundary="' . $self->mxhr_boundary . '"');
 
         # HACK: Always write a boundary for the next event, so client JS can fire the event immediately
