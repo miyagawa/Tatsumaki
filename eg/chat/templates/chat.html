@@ -1,15 +1,15 @@
-? my $channel = $_[0]->{handler}->args->[0];
-? my $mxhr = $_[0]->{handler}->request->param('mxhr');
+% my $channel = $_[0]->{handler}->args->[0];
+% my $mxhr = $_[0]->{handler}->request->param('mxhr');
 <html>
 <head>
 <title>Tatsumaki Chat demo</title>
 <script src="/static/jquery-1.3.2.min.js"></script>
-? if ($mxhr) {
+% if ($mxhr) {
 <script src="/static/DUI.js"></script>
 <script src="/static/Stream.js"></script>
-? } else {
+% } else {
 <script src="/static/jquery.ev.js"></script>
-? }
+% }
 <script src="/static/jquery.md5.js"></script>
 <script src="/static/jquery.cookie.js"></script>
 <script src="/static/jquery.oembed.js"></script>
@@ -22,7 +22,7 @@ function doPost(el1, el) {
   var text = el.attr('value');
   if (!text) return;
   $.ajax({
-    url: "/chat/<?= $channel ?>/post",
+    url: "/chat/<%= $channel %>/post",
     data: { ident: ident, text: text },
     type: 'post',
     dataType: 'json',
@@ -69,10 +69,10 @@ $(function(){
       var event = eval('(' + payload + ')');
       onNewEvent(event);
     });
-    s.load('/chat/<?= $channel ?>/mxhrpoll?session=' + Math.random());
+    s.load('/chat/<%= $channel %>/mxhrpoll?session=' + Math.random());
   } else {
     $.ev.handlers.message = onNewEvent;
-    $.ev.loop('/chat/<?= $channel ?>/poll?session=' + Math.random());
+    $.ev.loop('/chat/<%= $channel %>/poll?session=' + Math.random());
   }
 
   if ($.cookie(cookieName))
@@ -115,7 +115,7 @@ body {
 </style>
 </head>
 <body>
-<h1 class="chat-room-name">Chat room: <?= $channel ?></h1>
+<h1 class="chat-room-name">Chat room: <%= $channel %></h1>
 <!-- move this input out of form so Firefox can submit with enter key :/ -->
 Your email (for Gravatar): <input id="ident" type="text" name="ident" size="24"/>
 <form onsubmit="doPost($('#ident'), $('#chat')); return false">
@@ -125,7 +125,7 @@ Something to say: <input id="chat" type="text" size="48"/>
 <table id="messages">
 </table>
 
-<div id="footer">Powered by <a href="http://github.com/miyagawa/Tatsumaki">Tatsumaki/<?= $Tatsumaki::VERSION ?></a>.</div>
+<div id="footer">Powered by <a href="http://github.com/miyagawa/Tatsumaki">Tatsumaki/<%= $Tatsumaki::VERSION %></a>.</div>
 
 </body>
 </html>

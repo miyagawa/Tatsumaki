@@ -84,6 +84,9 @@ sub _build_template {
     Text::MicroTemplate::File->new(
         include_path => [ 'templates' ],
         use_cache => 0,
+        tag_start => '<%',
+        tag_end   => '%>',
+        line_start => '%',
     );
 }
 
