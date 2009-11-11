@@ -74,24 +74,26 @@ Tatsumaki - Non-blocking Web server and framework based on AnyEvent
 
   package main;
 
-  my $app = Tatsumaki::Application->new([
-      '/stream' => 'StreamWriter',
-      '/feed/(\w+)' => 'FeedHandler',
-      '/' => 'MainHandler',
-  ]);
-
   if (__FILE__ eq $0) {
-      Tatsumaki::Server->new(port => 9999)->run($app);
+      exec 'plackup', '-s', 'AnyEvent', '-a', $0;
   } else {
-      return $app->psgi_app;
+      my $app = Tatsumaki::Application->new([
+          '/stream' => 'StreamWriter',
+          '/feed/(\w+)' => 'FeedHandler',
+          '/' => 'MainHandler',
+      ]);
+      return $app;
   }
 
 =head1 WARNINGS
 
-This is my personal, toy and experimental project. The API will be
-added, updated or removed without any notice until it gets CPAN. As
-long as you're playing with git, keep that in mind, and don't blame me
-if one day your application stops running :)
+This is considered as alpha quality software. Most of the stuff are
+undocumented since it's considered unstable and will likely to
+change. You should sometimes look at the source code or example apps
+in I<eg> directory to see how this thing works.
+
+Feel free to hack on it and ask me if you have questions or
+suggestions at IRC: #plack on irc.perl.org.
 
 =head1 DESCRIPTION
 

@@ -2,7 +2,7 @@ use inc::Module::Install;
 name 'Tatsumaki';
 all_from 'lib/Tatsumaki.pm';
 readme_from 'lib/Tatsumaki.pm';
-requires 'AnyEvent';
+requires 'AnyEvent', '5.2';
 requires 'AnyEvent::HTTP';
 requires 'Moose';
 requires 'MooseX::NonMoose';
