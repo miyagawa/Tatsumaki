@@ -1,15 +1,13 @@
 package Tatsumaki::Request;
 use Encode;
-use Moose;
-use MooseX::NonMoose;
-extends 'Plack::Request';
+use parent qw(Plack::Request);
 
 use Tatsumaki::Response;
 
-override _build_parameters => sub {
+sub _build_parameters {
     my $self = shift;
 
-    my $params = super();
+    my $params = $self->SUPER::_build_parameters();
 
     my $decoded_params = {};
     while (my($k, $v) = each %$params) {
@@ -17,15 +15,12 @@ override _build_parameters => sub {
     }
 
     return $decoded_params;
-};
+}
 
 sub new_response {
     my $self = shift;
     Tatsumaki::Response->new(@_);
 }
-
-no Moose;
-__PACKAGE__->meta->make_immutable;
 
 1;
 

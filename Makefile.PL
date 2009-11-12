@@ -11,6 +11,8 @@ requires 'Plack::Server::AnyEvent', 0.02;
 requires 'Plack::Request';
 requires 'JSON';
 requires 'Text::MicroTemplate';
+requires 'Try::Tiny';
+requires 'parent';
 build_requires 'Test::More';
 use_test_base;
 auto_include_deps;

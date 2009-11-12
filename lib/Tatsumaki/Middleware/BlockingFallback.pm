@@ -1,6 +1,6 @@
 package Tatsumaki::Middleware::BlockingFallback;
 use strict;
-use base qw(Plack::Middleware);
+use parent qw(Plack::Middleware);
 use Carp ();
 use Plack::Util;
 use Scalar::Util ();

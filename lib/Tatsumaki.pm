@@ -24,7 +24,7 @@ Tatsumaki - Non-blocking web framework based on Plack and AnyEvent
   use Tatsumaki::Server;
 
   package MainHandler;
-  use base qw(Tatsumaki::Handler);
+  use parent qw(Tatsumaki::Handler);
 
   sub get {
       my $self = shift;
@@ -32,7 +32,7 @@ Tatsumaki - Non-blocking web framework based on Plack and AnyEvent
   }
 
   package FeedHandler;
-  use base qw(Tatsumaki::Handler);
+  use parent qw(Tatsumaki::Handler);
   __PACKAGE__->asynchronous(1);
 
   use JSON;
@@ -54,7 +54,7 @@ Tatsumaki - Non-blocking web framework based on Plack and AnyEvent
   }
 
   package StreamWriter;
-  use base qw(Tatsumaki::Handler);
+  use parent qw(Tatsumaki::Handler);
   __PACKAGE__->asynchronous(1);
 
   use AnyEvent;
