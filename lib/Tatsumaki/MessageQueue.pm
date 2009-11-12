@@ -1,6 +1,6 @@
 package Tatsumaki::MessageQueue;
 use strict;
-use Moose;
+use Any::Moose;
 use Try::Tiny;
 use Scalar::Util;
 use Time::HiRes;

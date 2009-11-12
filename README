@@ -9,7 +9,7 @@ SYNOPSIS
       use Tatsumaki::Server;
 
       package MainHandler;
-      use base qw(Tatsumaki::Handler);
+      use parent qw(Tatsumaki::Handler);
 
       sub get {
           my $self = shift;
@@ -17,7 +17,7 @@ SYNOPSIS
       }
 
       package FeedHandler;
-      use base qw(Tatsumaki::Handler);
+      use parent qw(Tatsumaki::Handler);
       __PACKAGE__->asynchronous(1);
 
       use JSON;
@@ -39,7 +39,7 @@ SYNOPSIS
       }
 
       package StreamWriter;
-      use base qw(Tatsumaki::Handler);
+      use parent qw(Tatsumaki::Handler);
       __PACKAGE__->asynchronous(1);
 
       use AnyEvent;

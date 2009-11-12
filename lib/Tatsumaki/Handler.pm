@@ -3,7 +3,7 @@ use strict;
 use AnyEvent;
 use Carp ();
 use Encode ();
-use Moose;
+use Any::Moose;
 use MIME::Base64 ();
 use JSON;
 use Try::Tiny;
@@ -232,7 +232,7 @@ sub render {
     $self->finish($self->application->render_file($file, { %$args, handler => $self })->as_string);
 }
 
-no Moose;
+no Any::Moose;
 __PACKAGE__->meta->make_immutable;
 
 1;
