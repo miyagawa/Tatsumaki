@@ -13,10 +13,10 @@ use Tatsumaki::MessageQueue;
 sub get {
     my($self, $channel) = @_;
     my $mq = Tatsumaki::MessageQueue->instance($channel);
-    my $session = $self->request->param('session')
-        or Tatsumaki::Error::HTTP->throw(500, "'session' needed");
-    $session = rand(1) if $session eq 'dummy'; # for benchmarking stuff
-    $mq->poll_once($session, sub { $self->on_new_event(@_) });
+    my $client_id = $self->request->param('client_id')
+        or Tatsumaki::Error::HTTP->throw(500, "'client_id' needed");
+    $client_id = rand(1) if $client_id eq 'dummy'; # for benchmarking stuff
+    $mq->poll_once($client_id, sub { $self->on_new_event(@_) });
 }
 
 sub on_new_event {
@@ -32,13 +32,12 @@ __PACKAGE__->asynchronous(1);
 sub get {
     my($self, $channel) = @_;
 
-    my $session = $self->request->param('session')
-        or Tatsumaki::Error::HTTP->throw(500, "'session' needed");
+    my $client_id = $self->request->param('client_id') || rand(1);
 
     $self->multipart_xhr_push(1);
 
     my $mq = Tatsumaki::MessageQueue->instance($channel);
-    $mq->poll($session, sub {
+    $mq->poll($client_id, sub {
         my @events = @_;
         for my $event (@events) {
             $self->stream_write($event);

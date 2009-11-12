@@ -69,10 +69,10 @@ $(function(){
       var event = eval('(' + payload + ')');
       onNewEvent(event);
     });
-    s.load('/chat/<%= $channel %>/mxhrpoll?session=' + Math.random());
+    s.load('/chat/<%= $channel %>/mxhrpoll');
   } else {
     $.ev.handlers.message = onNewEvent;
-    $.ev.loop('/chat/<%= $channel %>/poll?session=' + Math.random());
+    $.ev.loop('/chat/<%= $channel %>/poll?client_id=' + Math.random());
   }
 
   if ($.cookie(cookieName))
