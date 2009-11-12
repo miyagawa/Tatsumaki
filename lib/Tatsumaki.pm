@@ -13,10 +13,11 @@ __END__
 
 =head1 NAME
 
-Tatsumaki - Non-blocking Web server and framework based on AnyEvent
+Tatsumaki - Non-blocking web framework based on Plack and AnyEvent
 
 =head1 SYNOPSIS
 
+  ### app.psgi
   use Tatsumaki::Error;
   use Tatsumaki::Application;
   use Tatsumaki::HTTPClient;
@@ -74,16 +75,16 @@ Tatsumaki - Non-blocking Web server and framework based on AnyEvent
 
   package main;
 
-  if (__FILE__ eq $0) {
-      exec 'plackup', '-s', 'AnyEvent', '-a', $0;
-  } else {
-      my $app = Tatsumaki::Application->new([
-          '/stream' => 'StreamWriter',
-          '/feed/(\w+)' => 'FeedHandler',
-          '/' => 'MainHandler',
-      ]);
-      return $app;
-  }
+  my $app = Tatsumaki::Application->new([
+      '/stream' => 'StreamWriter',
+      '/feed/(\w+)' => 'FeedHandler',
+      '/' => 'MainHandler',
+  ]);
+  return $app;
+
+And now run it with:
+
+  plackup -s AnyEvent -a app.psgi
 
 =head1 WARNINGS
 
