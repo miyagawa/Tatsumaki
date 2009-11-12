@@ -1,4 +1,7 @@
 Revision history for Perl extension Tatsumaki
 
+0.1001  Wed Nov 11 23:30:24 PST 2009
+        - use Any::Moose: now all deps should run in pure perl, with optional XS speedups
+
 0.1000  Wed Nov 11 01:35:05 PST 2009
         - Initial version to CPAN
