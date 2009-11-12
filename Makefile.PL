@@ -9,7 +9,6 @@ requires 'MooseX::NonMoose';
 requires 'Plack', 0.9006;
 requires 'Plack::Server::AnyEvent', 0.02;
 requires 'Plack::Request';
-requires 'Throwable';
 requires 'JSON';
 requires 'Text::MicroTemplate';
 build_requires 'Test::More';

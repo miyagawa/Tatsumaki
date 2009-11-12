@@ -1,7 +1,11 @@
 package Tatsumaki::Error;
 use strict;
 use Moose;
-with 'Throwable';
+
+sub throw {
+    my($class, @rest) = @_;
+    die $class->new(@rest);
+}
 
 package Tatsumaki::Error::ClientDisconnect;
 use Moose;
