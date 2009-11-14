@@ -40,7 +40,7 @@ Tatsumaki - Non-blocking web framework based on Plack and AnyEvent
   sub get {
       my($self, $query) = @_;
       my $client = Tatsumaki::HTTPClient->new;
-      $client->get("http://friendfeed-api.com/v2/feed/$query", sub { $self->on_response(@_) });
+      $client->get("http://friendfeed-api.com/v2/feed/$query", $self->async_cb(sub { $self->on_response(@_) }));
   }
 
   sub on_response {
