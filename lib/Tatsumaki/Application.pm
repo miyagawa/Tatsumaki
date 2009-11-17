@@ -114,6 +114,11 @@ sub service {
     $self->services->{$name};
 }
 
+sub services {
+    my $self = shift;
+    values %{$self->services};
+}
+
 sub _service_name_for {
     my($self, $service) = @_;
 
