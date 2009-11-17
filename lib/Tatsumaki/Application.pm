@@ -32,6 +32,13 @@ around BUILDARGS => sub {
     }
 };
 
+sub add_handlers {
+    my $self = shift;
+    while (my($path, $handler) = splice @_, 0, 2) {
+        $self->route($path, $handler);
+    }
+}
+
 sub route {
     my($self, $path, $handler) = @_;
     $path = qr/^$path/ unless ref $path eq 'RegExp';
