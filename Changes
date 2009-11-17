@@ -1,5 +1,11 @@
 Revision history for Perl extension Tatsumaki
 
+0.1002  Mon Nov 16 18:03:50 PST 2009
+        - Remove client ID from MXHR example because it's not needed
+        - Specify lowest Mouse deps to make it work
+        - Delay load Text::MicroTemplate so you can use other template engines like TT2 (ingydotnet)
+        - Use Text::MicroTemplate::Extended by default (faultier, typester)
+
 0.1001  Wed Nov 11 23:30:24 PST 2009
         - use Any::Moose: now all deps should run in pure perl, with optional XS speedups
 

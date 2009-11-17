@@ -44,6 +44,8 @@ lib/Tatsumaki/Request.pm
 lib/Tatsumaki/Response.pm
 lib/Tatsumaki/Server.pm
 lib/Tatsumaki/Service.pm
+lib/Tatsumaki/Template.pm
+lib/Tatsumaki/Template/Micro.pm
 Makefile.PL
 MANIFEST			This list of files
 META.yml
