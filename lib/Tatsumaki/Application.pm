@@ -14,7 +14,7 @@ has _rules   => (is => 'rw', isa => 'ArrayRef');
 has template => (is => 'rw', isa => 'Tatsumaki::Template', lazy_build => 1, handles => [ 'render_file' ]);
 
 has static_path => (is => 'rw', isa => 'Str', default => 'static');
-has services    => (is => 'rw', isa => 'ArrayRef[Tatsumaki::Service]', default => sub { [] });
+has services    => (is => 'rw', isa => 'HashRef', default => sub { +{} });
 
 around BUILDARGS => sub {
     my $orig = shift;
@@ -94,10 +94,40 @@ sub template_path {
 }
 
 sub add_service {
-    my($self, $service) = @_;
+    my $self = shift;
+
+    my($name, $service);
+    if (@_ == 2) {
+        ($name, $service) = @_;
+    } else {
+        $service = shift;
+        $name = $self->_service_name_for($service);
+    }
+
     $service->application($self);
     $service->start;
-    push @{$self->services}, $service;
+    $self->services->{$name} = $service;
+}
+
+sub service {
+    my($self, $name) = @_;
+    $self->services->{$name};
+}
+
+sub _service_name_for {
+    my($self, $service) = @_;
+
+    my $ref = ref $service;
+    $ref =~ s/^Tatsumaki::Service:://;
+
+    my $name = $ref;
+
+    my $i = 0;
+    while (exists $self->services->{$name}) {
+        $name = $ref . $i++;
+    }
+
+    return $name;
 }
 
 no Any::Moose;
