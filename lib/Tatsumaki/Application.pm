@@ -3,7 +3,6 @@ use AnyEvent;
 use Any::Moose;
 use Tatsumaki::Handler;
 use Tatsumaki::Request;
-use Text::MicroTemplate::File;
 use Try::Tiny;
 
 use Plack::Middleware::Static;
@@ -12,7 +11,7 @@ use Tatsumaki::Middleware::BlockingFallback;
 use overload q(&{}) => sub { shift->psgi_app }, fallback => 1;
 
 has _rules   => (is => 'rw', isa => 'ArrayRef');
-has template => (is => 'rw', isa => 'Text::MicroTemplate::File', lazy_build => 1, handles => [ 'render_file' ]);
+has template => (is => 'rw', isa => 'Tatsumaki::Template', lazy_build => 1, handles => [ 'render_file' ]);
 
 has static_path => (is => 'rw', isa => 'Str', default => 'static');
 has services    => (is => 'rw', isa => 'ArrayRef[Tatsumaki::Service]', default => sub { [] });
@@ -81,22 +80,17 @@ sub compile_psgi_app {
 
 sub _build_template {
     my $self = shift;
-    Text::MicroTemplate::File->new(
-        include_path => [ 'templates' ],
-        use_cache => 0,
-        tag_start => '<%',
-        tag_end   => '%>',
-        line_start => '%',
-    );
+    require Tatsumaki::Template::Micro;
+    Tatsumaki::Template::Micro->new;
 }
 
 sub template_path {
     my $self = shift;
     if (@_) {
         my $path = ref $_[0] eq 'ARRAY' ? $_[0] : [ $_[0] ];
-        $self->template->{include_path} = $path;
+        $self->template->include_path($path);
     }
-    $self->template->{include_path};
+    $self->template->include_path;
 }
 
 sub add_service {
