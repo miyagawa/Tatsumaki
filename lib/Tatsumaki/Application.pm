@@ -79,9 +79,11 @@ sub compile_psgi_app {
         my $res = $handler->run;
     };
 
-    $app = Plack::Middleware::Static->wrap($app, path => sub { s/^\/static\/// }, root => $self->static_path);
-    $app = Tatsumaki::Middleware::BlockingFallback->wrap($app);
+    if ($self->static_path) {
+        $app = Plack::Middleware::Static->wrap($app, path => sub { s/^\/static\/// }, root => $self->static_path);
+    }
 
+    $app = Tatsumaki::Middleware::BlockingFallback->wrap($app);
     $app;
 }
 
