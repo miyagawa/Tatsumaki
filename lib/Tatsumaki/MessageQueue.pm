@@ -14,6 +14,10 @@ our $BacklogLength = 30; # TODO configurable
 
 my %instances;
 
+sub channels {
+    values %instances;
+}
+
 sub instance {
     my($class, $name) = @_;
     $instances{$name} ||= $class->new(channel => $name);
@@ -108,6 +112,7 @@ sub poll_once {
 sub poll {
     my($self, $client_id, $cb) = @_;
 
+    # TODO register client info like names and remote host in $client
     my $cv = AE::cv;
     $cv->cb(sub { $cb->($_[0]->recv) });
     my $s = $self->clients->{$client_id} = {

@@ -1,5 +1,6 @@
 use strict;
 use warnings;
+use Tatsumaki;
 use Tatsumaki::Error;
 use Tatsumaki::Application;
 use Time::HiRes;
