@@ -56,12 +56,16 @@ DUI.create('Stream', {
                 }
             }
         }
-        
+
+       
         //These versions don't support readyState == 3 header requests
         //try { this.req = new ActiveXObject('Microsoft.XMLHTTP'); } catch(err) {}
         //try { this.req = new ActiveXObject('MSXML2.XMLHTTP.3.0'); } catch(err) {}
         
         this.req.open('GET', url, true);
+
+        //Declare that the client is capable of handling multipart responses
+        this.req.setRequestHeader('Accept', 'multipart/mixed');
         
         var _this = this;
         this.req.onreadystatechange = function() {
