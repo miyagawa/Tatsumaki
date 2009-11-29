@@ -10,7 +10,7 @@ use constant DEBUG => $ENV{TATSUMAKI_DEBUG};
 
 has channel => (is => 'rw', isa => 'Str');
 has backlog => (is => 'rw', isa => 'ArrayRef', default => sub { [] });
-has clients => (is => 'rw', isa => 'HashRef', default => sub { +{} });
+has _clients => (is => 'rw', isa => 'HashRef', default => sub { +{} });
 
 our $BacklogLength = 30; # TODO configurable
 
@@ -18,6 +18,11 @@ my %instances;
 
 sub channels {
     values %instances;
+}
+
+sub clients {
+    my $self = shift;
+    values %{$self->_clients};
 }
 
 sub instance {
@@ -39,8 +44,8 @@ sub append_backlog {
 sub publish {
     my($self, @events) = @_;
 
-    for my $client_id (keys %{$self->clients}) {
-        my $client = $self->clients->{$client_id};
+    for my $client_id (keys %{$self->_clients}) {
+        my $client = $self->_clients->{$client_id};
         if ($client->{cv}->cb) {
             # currently listening: flush and send the events right away
             $self->flush_events($client_id, @events);
@@ -57,7 +62,7 @@ sub publish {
 sub flush_events {
     my($self, $client_id, @events) = @_;
 
-    my $client = $self->clients->{$client_id} or return;
+    my $client = $self->_clients->{$client_id} or return;
     try {
         my $cb = $client->{cv}->cb;
         $client->{cv}->send(@events);
@@ -71,7 +76,7 @@ sub flush_events {
                 Scalar::Util::weaken $self;
                 warn "Sweep $client_id (no long-poll reconnect)" if DEBUG;
                 undef $client;
-                delete $self->clients->{$client_id};
+                delete $self->_clients->{$client_id};
             };
             Scalar::Util::weaken $client->{timer};
         }
@@ -79,7 +84,7 @@ sub flush_events {
         /Tatsumaki::Error::ClientDisconnect/ and do {
             warn "Client $client_id disconnected" if DEBUG;
             undef $client;
-            delete $self->clients->{$client_id};
+            delete $self->_clients->{$client_id};
         };
     };
 }
@@ -88,7 +93,7 @@ sub poll_once {
     my($self, $client_id, $cb, $timeout) = @_;
 
     my $is_new;
-    my $client = $self->clients->{$client_id} ||= do {
+    my $client = $self->_clients->{$client_id} ||= do {
         $is_new = 1;
         + { cv => AE::cv, persistent => 0, buffer => [] };
     };
@@ -121,7 +126,7 @@ sub poll {
     # TODO register client info like names and remote host in $client
     my $cv = AE::cv;
     $cv->cb(sub { $cb->($_[0]->recv) });
-    my $s = $self->clients->{$client_id} = {
+    my $s = $self->_clients->{$client_id} = {
         cv => $cv, persistent => 1, buffer => [],
     };
 
