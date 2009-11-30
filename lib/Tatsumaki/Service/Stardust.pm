@@ -2,6 +2,8 @@ package Tatsumaki::Service::Stardust;
 use Any::Moose;
 extends 'Tatsumaki::Service';
 
+use Encode ();
+use JSON ();
 use Tatsumaki;
 use Tatsumaki::MessageQueue;
 use Tatsumaki::Application;
@@ -60,12 +62,13 @@ sub post {
 
     my $mq = Tatsumaki::MessageQueue->instance($channel);
 
-    my @events = map JSON::decode_json($_), $self->request->param('m');
+    my @events = map JSON::decode_json(Encode::encode_utf8($_)), $self->request->param('m');
     for my $event (@events) {
         $mq->publish($event);
     }
 
     $self->response->code(204);
+    $self->finish;
 }
 
 package Tatsumaki::Service::Stardust::StreamHandler;
