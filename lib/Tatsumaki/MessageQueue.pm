@@ -1,7 +1,7 @@
 package Tatsumaki::MessageQueue;
 use strict;
 
-use AE;
+use AnyEvent;
 use Any::Moose;
 use Try::Tiny;
 use Scalar::Util;
