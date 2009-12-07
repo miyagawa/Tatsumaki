@@ -1,9 +1,7 @@
-use Test::More tests => 4;
-
-use AE;
+use Test::More tests => 5;
 use Test::Memory::Cycle;
 
-use Tatsumaki::MessageQueue;
+use_ok('Tatsumaki::MessageQueue');
 
 srand(time ** $$);
 
