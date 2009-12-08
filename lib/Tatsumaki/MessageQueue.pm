@@ -206,15 +206,10 @@ passed as the second parameter.
 
 =head1 AUTHOR
 
-Tatsuhiko Miyagawa E<lt>miyagawa@bulknews.netE<gt>
-
-=head1 LICENSE
-
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself.
+Tatsuhiko Miyagawa
 
 =head1 SEE ALSO
 
-L<Tatsumaki>, L<AnyEvent> L<Plack> L<PSGI> L<http://www.tornadoweb.org/>
+L<Tatsumaki>
 
 =cut
