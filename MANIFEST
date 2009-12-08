@@ -33,6 +33,7 @@ inc/Test/Base/Filter.pm
 inc/Test/Builder.pm
 inc/Test/Builder/Module.pm
 inc/Test/More.pm
+inc/Test/Requires.pm
 lib/Tatsumaki.pm
 lib/Tatsumaki/Application.pm
 lib/Tatsumaki/Error.pm
@@ -53,6 +54,8 @@ README
 t/00_compile.t
 t/handler/exception.t
 t/handler/sync.t
+t/mq/basic.t
+t/mq/cycle.t
 xt/perlcritic.t
 xt/pod.t
 xt/podspell.t
