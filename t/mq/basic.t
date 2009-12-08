@@ -1,8 +1,5 @@
 use Test::More;
-
-use_ok('Tatsumaki::MessageQueue');
-
-srand(time ** $$);
+use Tatsumaki::MessageQueue;
 
 my $channel  = 'test1';
 

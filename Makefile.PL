@@ -14,6 +14,7 @@ requires 'Text::MicroTemplate';
 requires 'Try::Tiny';
 requires 'parent';
 build_requires 'Test::More';
+test_requires 'Test::Requires';
 use_test_base;
 auto_include_deps;
 auto_install;
