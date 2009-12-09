@@ -2,6 +2,7 @@ Revision history for Perl extension Tatsumaki
 
 0.1004  Tue Dec  8 07:21:24 PST 2009
         - Fixed a memory leak in MessageQueue (jshirly)
+        - Added experimental methods to set and get services from Application
 
 0.1003  Mon Nov 16 21:38:04 PST 2009
         - Revert to use Text::MicroTemplate::File for now
