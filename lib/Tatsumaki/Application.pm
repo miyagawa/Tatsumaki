@@ -123,7 +123,7 @@ sub service {
     $self->services->{$name};
 }
 
-sub services {
+sub all_services {
     my $self = shift;
     values %{$self->services};
 }
