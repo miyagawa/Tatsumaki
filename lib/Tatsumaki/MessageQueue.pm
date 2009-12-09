@@ -43,8 +43,7 @@ sub publish {
         my $client = $self->clients->{$client_id};
         if ($client->{cv}->cb) {
             # currently listening: flush and send the events right away
-            my @ev = (@{$client->{buffer}}, @events);
-            $self->flush_events($client_id, @ev);
+            $self->flush_events($client_id, @events);
         } else {
             # between long poll comet: buffer the events
             # TODO: limit buffer length
@@ -106,10 +105,13 @@ sub poll_once {
     };
     Scalar::Util::weaken $client->{timer};
 
-    # flush backlog for a new client
     if ($is_new) {
+        # flush backlog for a new client
         my @events = $self->backlog_events;
         $self->flush_events($client_id, @events) if @events;
+    }elsif ( @{ $client->{buffer} } ) {
+        # flush buffer for a long-poll client
+        $self->flush_events($client_id, @{ $client->{buffer} });
     }
 }
 
