@@ -11,7 +11,8 @@ sub _build_parameters {
 
     my $decoded_params = {};
     while (my($k, $v) = each %$params) {
-        $decoded_params->{decode_utf8($k)} = decode_utf8($v);
+        $decoded_params->{decode_utf8($k)} = ref $v eq 'ARRAY'
+            ? [ map decode_utf8($_), @$v ] : decode_utf8($v);
     }
 
     return $decoded_params;
