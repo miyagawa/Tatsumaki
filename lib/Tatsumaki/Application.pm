@@ -14,7 +14,7 @@ has _rules   => (is => 'rw', isa => 'ArrayRef');
 has template => (is => 'rw', isa => 'Tatsumaki::Template', lazy_build => 1, handles => [ 'render_file' ]);
 
 has static_path => (is => 'rw', isa => 'Str', default => 'static');
-has services    => (is => 'rw', isa => 'HashRef', default => sub { +{} });
+has _services   => (is => 'rw', isa => 'HashRef', default => sub { +{} });
 
 around BUILDARGS => sub {
     my $orig = shift;
@@ -115,17 +115,17 @@ sub add_service {
 
     $service->application($self);
     $service->start;
-    $self->services->{$name} = $service;
+    $self->_services->{$name} = $service;
 }
 
 sub service {
     my($self, $name) = @_;
-    $self->services->{$name};
+    $self->_services->{$name};
 }
 
-sub all_services {
+sub services {
     my $self = shift;
-    values %{$self->services};
+    values %{$self->_services};
 }
 
 sub _service_name_for {
@@ -137,7 +137,7 @@ sub _service_name_for {
     my $name = $ref;
 
     my $i = 0;
-    while (exists $self->services->{$name}) {
+    while (exists $self->_services->{$name}) {
         $name = $ref . $i++;
     }
 
