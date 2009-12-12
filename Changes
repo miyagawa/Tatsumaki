@@ -1,5 +1,11 @@
 Revision history for Perl extension Tatsumaki
 
+0.1005  Sat Dec 12 00:57:20 PST 2009
+        - Fixed services conflicts with the latest Moose (hiratara)
+        - Use path_info rather than path to dispatch
+        - Push buffered events immediately in long-poll (hiratara)
+        - Fixed params bug where multiple values are flattened (ingy)
+
 0.1004  Tue Dec  8 07:21:24 PST 2009
         - Fixed a memory leak in MessageQueue (jshirly)
         - Added experimental methods to set and get services from Application
