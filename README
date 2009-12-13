@@ -116,5 +116,5 @@ LICENSE
     under the same terms as Perl itself.
 
 SEE ALSO
-    AnyEvent Plack PSGI <http://www.tornadoweb.org/>
+    AnyEvent Plack PSGI
 
