@@ -67,8 +67,6 @@ sub psgi_app {
 sub compile_psgi_app {
     my $self = shift;
 
-    Scalar::Util::weaken($self);
-
     my $app = sub {
         my $env = shift;
         my $req = Tatsumaki::Request->new($env);
