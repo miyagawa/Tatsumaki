@@ -1,5 +1,8 @@
 Revision history for Perl extension Tatsumaki
 
+0.1007  Tue Dec 22 10:07:18 PST 2009
+        - Make Test::Warn test optional
+
 0.1006  Fri Dec 18 06:45:57 PST 2009
         - Fixed a bug in ->psgi_app where it could potentially let $app object disappear
 
