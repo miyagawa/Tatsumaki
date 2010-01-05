@@ -6,7 +6,6 @@ use Tatsumaki::Request;
 use Try::Tiny;
 
 use Plack::Middleware::Static;
-use Tatsumaki::Middleware::BlockingFallback;
 
 use overload q(&{}) => sub { shift->psgi_app }, fallback => 1;
 
@@ -81,7 +80,6 @@ sub compile_psgi_app {
         $app = Plack::Middleware::Static->wrap($app, path => sub { s/^\/static\/// }, root => $self->static_path);
     }
 
-    $app = Tatsumaki::Middleware::BlockingFallback->wrap($app);
     $app;
 }
 
