@@ -108,7 +108,6 @@ sub run {
 
     if ($self->is_asynchronous) {
         $self->condvar(my $cv = AE::cv);
-        $self->request->env->{'psgix.block.response'} = sub { $cv->recv };
         return sub {
             my $start_response = shift;
             $cv->cb(sub {
@@ -119,7 +118,6 @@ sub run {
                     if (!$res->[2] && $w) {
                         $self->writer($w);
                         $self->condvar(my $cv2 = AE::cv);
-                        $self->request->env->{'psgix.block.body'} = sub { $cv2->recv };
                     }
                 } catch {
                     $start_response->($catch->());
@@ -132,6 +130,11 @@ sub run {
             } catch {
                 $cv->croak($_);
             };
+
+            unless ($self->request->env->{'psgi.nonblocking'}) {
+                $self->log("Running an async handler in a blocking server. MQ based app should cause a deadlock.\n");
+                $self->condvar->recv for 1..2; # response and writer
+            }
         };
     } else {
         my $res = try {
@@ -210,7 +213,7 @@ sub flush {
         my $res = $self->response->finalize;
         delete $res->[2]; # gimme a writer
         $self->condvar->send($res);
-        $self->writer or Carp::croak("Can't get writer object back: you need servers with psgi.nonblocking");
+        $self->writer or Carp::croak("Can't get a writer object back: you need servers with psgi.streaming");
         $self->flush();
     }
 }
