@@ -69,7 +69,7 @@ $(function(){
       var event = eval('(' + payload + ')');
       onNewEvent(event);
     });
-    s.load('/_services/stardust/channel/<%= $channel %>/stream');
+    s.load('/_services/stardust/channel/<%= $channel %>/stream/' + Math.random());
   } else {
     $.ev.handlers.message = onNewEvent;
     $.ev.loop('/_services/stardust/channel/<%= $channel %>/stream/' + Math.random());

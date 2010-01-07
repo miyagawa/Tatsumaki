@@ -126,12 +126,16 @@ sub poll {
     # TODO register client info like names and remote host in $client
     my $cv = AE::cv;
     $cv->cb(sub { $cb->($_[0]->recv) });
-    my $s = $self->_clients->{$client_id} = {
+
+    my $is_new = !exists $self->_clients->{$client_id};
+    my $client = $self->_clients->{$client_id} = {
         cv => $cv, persistent => 1, buffer => [],
     };
 
-    my @events = $self->backlog_events;
-    $self->flush_events($client_id, @events) if @events;
+    if ($is_new) {
+        my @events = $self->backlog_events;
+        $self->flush_events($client_id, @events) if @events;
+    }
 }
 
 1;
