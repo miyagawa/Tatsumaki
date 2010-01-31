@@ -73,7 +73,6 @@ sub flush_events {
                 undef $client;
                 delete $self->clients->{$client_id};
             };
-            Scalar::Util::weaken $client->{timer};
         }
     } catch {
         /Tatsumaki::Error::ClientDisconnect/ and do {
@@ -103,7 +102,6 @@ sub poll_once {
         warn "Timing out $client_id long-poll" if DEBUG;
         $self->flush_events($client_id);
     };
-    Scalar::Util::weaken $client->{timer};
 
     if ($is_new) {
         # flush backlog for a new client
