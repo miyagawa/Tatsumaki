@@ -114,8 +114,9 @@ sub run {
             $cv->cb(sub {
                 my $cv = shift;
                 try {
-                    my $w = $start_response->($cv->recv);
-                    if ($w) {
+                    my $res = $cv->recv;
+                    my $w = $start_response->($res);
+                    if (!$res->[2] && $w) {
                         $self->writer($w);
                         $self->condvar(my $cv2 = AE::cv);
                         $self->request->env->{'psgix.block.body'} = sub { $cv2->recv };
