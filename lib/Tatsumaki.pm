@@ -4,6 +4,8 @@ use strict;
 use 5.008_001;
 our $VERSION = '0.1008';
 
+use constant DEBUG => $ENV{TATSUMAKI_DEBUG};
+
 1;
 __END__
 

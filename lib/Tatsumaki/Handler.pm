@@ -5,8 +5,10 @@ use Carp ();
 use Encode ();
 use Any::Moose;
 use MIME::Base64 ();
+use Data::Dump qw(dump);
 use JSON;
 use Try::Tiny;
+use Tatsumaki;
 use Tatsumaki::Error;
 
 has application => (is => 'rw', isa => 'Tatsumaki::Application');
@@ -14,6 +16,8 @@ has condvar  => (is => 'rw', isa => 'AnyEvent::CondVar');
 has request  => (is => 'rw', isa => 'Tatsumaki::Request');
 has response => (is => 'rw', isa => 'Tatsumaki::Response', lazy_build => 1);
 has args     => (is => 'rw', isa => 'ArrayRef');
+has logger   => (is => 'rw', isa => 'CodeRef', lazy => 1,
+                 default => sub { $_[0]->request->logger || sub { Carp::carp($_[0]->{message}) } });
 has writer   => (is => 'rw');
 has mxhr     => (is => 'rw', isa => 'Bool');
 has mxhr_boundary => (is => 'rw', isa => 'Str', lazy => 1, lazy_build => 1);
@@ -94,14 +98,17 @@ sub run {
 
     my $method = lc $self->request->method;
     unless ($self->supported_method($method)) {
+        Tatsumaki::DEBUG && $self->debug("$method is not allowed");
         Tatsumaki::Error::HTTP->throw(400);
     }
+
+    Tatsumaki::DEBUG && $self->debug("New request: $method on " . ref($self));
 
     my $catch = sub {
         if ($_->isa('Tatsumaki::Error::HTTP')) {
             return [ $_->code, [ 'Content-Type' => 'text/plain' ], [ $_->message ] ];
         } else {
-            $self->log($_);
+            Tatsumaki::DEBUG && $self->debug($_);
             return [ 500, [ 'Content-Type' => 'text/plain' ], [ "Internal Server Error" ] ];
         }
     };
@@ -120,6 +127,7 @@ sub run {
                         $self->condvar(my $cv2 = AE::cv);
                     }
                 } catch {
+                    Tatsumaki::DEBUG && $self->debug("Error: " . $_);
                     $start_response->($catch->());
                 };
             });
@@ -132,7 +140,7 @@ sub run {
             };
 
             unless ($self->request->env->{'psgi.nonblocking'}) {
-                $self->log("Running an async handler in a blocking server. MQ based app should cause a deadlock.\n");
+                Tatsumaki::DEBUG && $self->debug("Running an async handler in a blocking server. MQ based app should cause a deadlock.\n");
                 $self->condvar->recv for 1..2; # response and writer
             }
         };
@@ -150,9 +158,14 @@ sub run {
     }
 }
 
-sub log {
+sub debug {
     my($self, @stuff) = @_;
-    $self->request->env->{'psgi.errors'}->print(join '', @stuff);
+    $self->logger->({ level => 'debug', message => join('', @stuff) });
+}
+
+sub log {
+    my($self, $level, @stuff) = @_;
+    $self->logger->({ level => $level, message => join('', @stuff) });
 }
 
 sub get_writer {
