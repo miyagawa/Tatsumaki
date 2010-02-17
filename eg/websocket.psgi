@@ -7,6 +7,7 @@ __PACKAGE__->asynchronous(1);
 
 sub open {
     my $self = shift;
+    $self->write("Congrats!");
 }
 
 sub on_receive_message {
