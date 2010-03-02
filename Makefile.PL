@@ -6,7 +6,7 @@ requires 'AnyEvent', '5.2';
 requires 'AnyEvent::HTTP';
 requires 'Any::Moose';
 requires 'Mouse', 0.34;
-requires 'Plack', 0.99;
+requires 'Plack', 0.9913;
 requires 'Twiggy';
 requires 'JSON';
 requires 'Text::MicroTemplate';

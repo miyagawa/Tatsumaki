@@ -40,7 +40,6 @@ lib/Tatsumaki/Error.pm
 lib/Tatsumaki/Handler.pm
 lib/Tatsumaki/HTTPClient.pm
 lib/Tatsumaki/MessageQueue.pm
-lib/Tatsumaki/Middleware/BlockingFallback.pm
 lib/Tatsumaki/Request.pm
 lib/Tatsumaki/Response.pm
 lib/Tatsumaki/Server.pm

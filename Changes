@@ -1,5 +1,11 @@
 Revision history for Perl extension Tatsumaki
 
+0.1009  Tue Mar  2 14:31:15 PST 2010
+        - Fixed a rare condition where response starter returns something and garbage
+          collection breaks.
+        - Fixed dependency and depend on Twiggy not Plack::Server::AnyEvent (zamolxes)
+        - Removed BlockingFallback middleware
+
 0.1008  Sun Jan 31 14:16:02 PST 2010
         - Fixed a MessageQueue bug where long poll cleanup timer is discarded
           (Thanks to yoshimax, hiratara and jshirley)
