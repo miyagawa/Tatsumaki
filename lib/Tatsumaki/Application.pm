@@ -22,6 +22,7 @@ around BUILDARGS => sub {
         my $handlers = shift @_;
         my @rules;
         while (my($path, $handler) = splice @$handlers, 0, 2) {
+            $path = qr@^/$@    if $path eq '/';
             $path = qr/^$path/ unless ref $path eq 'RegExp';
             push @rules, { path => $path, handler => $handler };
         }
