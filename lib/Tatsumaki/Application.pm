@@ -78,7 +78,7 @@ sub compile_psgi_app {
     };
 
     if ($self->static_path) {
-        $app = Plack::Middleware::Static->wrap($app, path => sub { s/^\/static\/// }, root => $self->static_path);
+        $app = Plack::Middleware::Static->wrap($app, path => sub { s/^\/(?:(favicon\.ico)|static\/)/$1||''/e }, root => $self->static_path);
     }
 
     $app;
