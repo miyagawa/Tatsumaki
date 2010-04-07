@@ -53,6 +53,7 @@ README
 t/00_compile.t
 t/application_with_moose.t
 t/handler/exception.t
+t/handler/root.t
 t/handler/sync.t
 t/mq/basic.t
 t/mq/cycle.t

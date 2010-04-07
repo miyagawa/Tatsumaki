@@ -1,5 +1,11 @@
 Revision history for Perl extension Tatsumaki
 
+0.1010  Wed Apr  7 15:48:43 PDT 2010
+        - INCOMPATIBLE: '/' in the mapping matches only with '/'. If you need the catch-all behavior,
+          use '/.*' instead.
+        - special case favicon.ico to serve from static/ directory
+        - Handlers now handle HEAD the same as GET by default
+
 0.1009  Tue Mar  2 14:31:15 PST 2010
         - Fixed a rare condition where response starter returns something and garbage
           collection breaks.
