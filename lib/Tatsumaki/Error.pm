@@ -18,13 +18,14 @@ extends 'Tatsumaki::Error';
 
 use overload q("") => sub { $_[0]->message }, fallback => 1;
 has code => (is => 'rw', isa => 'Int');
+has content_type => (is => 'rw', isa => 'Str', default => 'text/plain');
 has message => (is => 'rw', isa => 'Str');
 
 around BUILDARGS => sub {
     my $orig = shift;
-    my($class, $code, $msg) = @_;
+    my($class, $code, $msg, $ct) = @_;
     $msg ||= HTTP::Status::status_message($code);
-    $class->$orig(code => $code, message => $msg);
+    $class->$orig(code => $code, content_type => ($ct // 'text/plain'), message => $msg);
 };
 
 package Tatsumaki::Error;

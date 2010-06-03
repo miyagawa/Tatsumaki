@@ -99,7 +99,7 @@ sub run {
 
     my $catch = sub {
         if ($_->isa('Tatsumaki::Error::HTTP')) {
-            return [ $_->code, [ 'Content-Type' => 'text/plain' ], [ $_->message ] ];
+            return [ $_->code, [ 'Content-Type' => $_->content_type ], [ $_->message ] ];
         } else {
             $self->log($_);
             return [ 500, [ 'Content-Type' => 'text/plain' ], [ "Internal Server Error" ] ];
