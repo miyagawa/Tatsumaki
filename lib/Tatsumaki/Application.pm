@@ -51,8 +51,16 @@ sub dispatch {
     my $path = $req->path_info;
     for my $rule (@{$self->_rules}) {
         if ($path =~ $rule->{path}) {
-            my $args = [ $1, $2, $3, $4, $5, $6, $7, $8, $9 ];
-            return $rule->{handler}->new(@_, application => $self, request => $req, args => $args);
+            my @args;
+            if ($] >= 5.006) {
+                no strict 'refs';
+                @args = map { $$_ } 1 .. @+;
+            }
+            else {
+                @args = ( $1, $2, $3, $4, $5, $6, $7, $8, $9 );
+                pop @args while @args && !defined($args[$#args]);
+            }
+            return $rule->{handler}->new(@_, application => $self, request => $req, args => \@args);
         }
     }
 
