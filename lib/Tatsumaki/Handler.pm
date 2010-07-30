@@ -17,7 +17,7 @@ has args     => (is => 'rw', isa => 'ArrayRef');
 has writer   => (is => 'rw');
 has mxhr     => (is => 'rw', isa => 'Bool');
 has mxhr_boundary => (is => 'rw', isa => 'Str', lazy => 1, lazy_build => 1);
-has json     => (is => 'rw', isa => 'JSON', lazy => 1, default => sub { JSON->new });
+has json     => (is => 'rw', isa => 'JSON', lazy => 1, default => sub { JSON->new->utf8 });
 
 has _write_buffer => (is => 'rw', isa => 'ArrayRef', lazy => 1, default => sub { [] });
 
