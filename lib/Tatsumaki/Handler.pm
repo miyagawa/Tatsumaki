@@ -17,6 +17,7 @@ has args     => (is => 'rw', isa => 'ArrayRef');
 has writer   => (is => 'rw');
 has mxhr     => (is => 'rw', isa => 'Bool');
 has mxhr_boundary => (is => 'rw', isa => 'Str', lazy => 1, lazy_build => 1);
+has json     => (is => 'rw', isa => 'JSON', lazy => 1, default => sub { JSON->new });
 
 has _write_buffer => (is => 'rw', isa => 'ArrayRef', lazy => 1, default => sub { [] });
 
@@ -165,11 +166,11 @@ sub get_chunk {
     my $self = shift;
     if (ref $_[0]) {
         if ($self->mxhr) {
-            my $json = JSON::encode_json($_[0]);
+            my $json = $self->json->encode($_[0]);
             return "Content-Type: application/json\n\n$json\n--" . $self->mxhr_boundary. "\n";
         } else {
             $self->response->content_type('application/json');
-            return JSON::encode_json($_[0]);
+            return $self->json->encode($_[0]);
         }
     } else {
         join '', map Encode::encode_utf8($_), @_;
