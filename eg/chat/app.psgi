@@ -54,7 +54,7 @@ use Encode;
 sub post {
     my($self, $channel) = @_;
 
-    my $v = $self->request->params;
+    my $v = $self->request->parameters;
     my $html = $self->format_message($v->{text});
     my $mq = Tatsumaki::MessageQueue->instance($channel);
     $mq->publish({
@@ -96,4 +96,4 @@ my $app = Tatsumaki::Application->new([
 $app->template_path(dirname(__FILE__) . "/templates");
 $app->static_path(dirname(__FILE__) . "/static");
 
-return $app;
+return $app->psgi_app;
