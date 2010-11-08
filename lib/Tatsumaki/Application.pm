@@ -46,7 +46,8 @@ sub route {
 }
 
 sub dispatch {
-    my($self, $req) = @_;
+    my $self = shift;
+    my $req  = shift;
 
     my $path = $req->path_info;
     for my $rule (@{$self->_rules}) {
