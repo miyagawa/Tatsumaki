@@ -55,7 +55,7 @@ sub dispatch {
             my @args;
             if ($] >= 5.006) {
                 no strict 'refs';
-                @args = map { $$_ } 1 .. @+;
+                @args = map { $$_ } 1 .. $#-;
             }
             else {
                 @args = ( $1, $2, $3, $4, $5, $6, $7, $8, $9 );
