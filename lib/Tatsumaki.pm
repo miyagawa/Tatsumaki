@@ -2,7 +2,7 @@ package Tatsumaki;
 
 use strict;
 use 5.008_001;
-our $VERSION = '0.10102';
+our $VERSION = '0.10103';
 
 1;
 __END__
