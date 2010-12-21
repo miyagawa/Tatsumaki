@@ -10,9 +10,6 @@ use Test::TCP qw/empty_port wait_port/;
 use strict;
 use warnings;
 
-use Tatsumaki::Application;
-use Tatsumaki::MessageQueue;
-
 use AnyEvent;
 use AnyEvent::HTTP;
 
@@ -36,7 +33,6 @@ sub prepare {
     my $async = proc_guard(
         sub {
             my $runner = Plack::Runner->new;
-            my $app = Tatsumaki::Application->new([ '/' => 'MainHandler' ]);
             $runner->parse_options( qw/-p/, $async_port, qw/-s Twiggy -a/, $psgi );
             $runner->run;
         }
