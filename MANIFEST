@@ -58,6 +58,8 @@ t/handler/sync.t
 t/mq/basic.t
 t/mq/cycle.t
 t/mq/events_before_long_poll.t
+t/mq/leak.psgi
+t/mq/leak.t
 t/mq/timer.t
 xt/perlcritic.t
 xt/pod.t

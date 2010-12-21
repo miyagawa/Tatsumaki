@@ -1,5 +1,9 @@
 Revision history for Perl extension Tatsumaki
 
+0.1011  Tue Dec 21 11:49:49 PST 2010
+        - Fixed to use $r->parameters to make it work with newer Plack::Request
+        - Fixed MessageQueue leak when long-poll client immediately reconnects after disconnection (mash)
+
 0.1010  Wed Apr  7 15:48:43 PDT 2010
         - INCOMPATIBLE: '/' in the mapping matches only with '/'. If you need the catch-all behavior,
           use '/.*' instead.
