@@ -21,7 +21,6 @@ sub get {
         },
         2 # poll for [sec]
     );
-    Scalar::Util::weaken( $self );
 }
 
 package main;
