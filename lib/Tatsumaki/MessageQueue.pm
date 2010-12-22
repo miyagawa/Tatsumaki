@@ -67,7 +67,8 @@ sub flush_events {
         if ($client->{persistent}) {
             $client->{cv}->cb($cb);
         } else {
-            $client->{timer} = AE::timer 30, 0, sub {
+            undef $client->{longpoll_timer};
+            $client->{reconnect_timer} = AE::timer 30, 0, sub {
                 Scalar::Util::weaken $self;
                 warn "Sweep $client_id (no long-poll reconnect)" if DEBUG;
                 undef $client;
@@ -92,12 +93,19 @@ sub poll_once {
         + { cv => AE::cv, persistent => 0, buffer => [] };
     };
 
+    if ( $client->{longpoll_timer} ) {
+        # close last connection from the same client_id
+        $self->flush_events($client_id);
+        undef $client->{longpoll_timer};
+    }
+    undef $client->{reconnect_timer};
+
     $client->{cv}->cb(sub { $cb->($_[0]->recv) });
 
     # reset garbage collection timeout with the long-poll timeout
     # $timeout = 0 is a valid timeout for interval-polling
     $timeout = 55 unless defined $timeout;
-    $client->{timer} = AE::timer $timeout || 55, 0, sub {
+    $client->{longpoll_timer} = AE::timer $timeout || 55, 0, sub {
         Scalar::Util::weaken $self;
         warn "Timing out $client_id long-poll" if DEBUG;
         $self->flush_events($client_id);
