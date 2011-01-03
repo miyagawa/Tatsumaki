@@ -3,7 +3,6 @@ use strict;
 
 use AnyEvent;
 use Any::Moose;
-use Try::Tiny;
 use Scalar::Util;
 use Time::HiRes;
 use constant DEBUG => $ENV{TATSUMAKI_DEBUG};
@@ -58,7 +57,8 @@ sub flush_events {
     my($self, $client_id, @events) = @_;
 
     my $client = $self->clients->{$client_id} or return;
-    try {
+    local $@;
+    eval {
         my $cb = $client->{cv}->cb;
         $client->{cv}->send(@events);
         $client->{cv} = AE::cv;
@@ -75,13 +75,12 @@ sub flush_events {
                 delete $self->clients->{$client_id};
             };
         }
-    } catch {
-        /Tatsumaki::Error::ClientDisconnect/ and do {
-            warn "Client $client_id disconnected" if DEBUG;
-            undef $client;
-            delete $self->clients->{$client_id};
-        };
     };
+    if ($@ && $@ =~ /Tatsumaki::Error::ClientDisconnect/) {
+        warn "Client $client_id disconnected" if DEBUG;
+        undef $client;
+        delete $self->clients->{$client_id};
+    }
 }
 
 sub poll_once {

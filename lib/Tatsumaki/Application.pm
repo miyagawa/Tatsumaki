@@ -3,7 +3,6 @@ use AnyEvent;
 use Any::Moose;
 use Tatsumaki::Handler;
 use Tatsumaki::Request;
-use Try::Tiny;
 use 5.6.0;  # for @-
 
 use Plack::Middleware::Static;
