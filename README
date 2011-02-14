@@ -65,11 +65,11 @@ SYNOPSIS
           '/feed/(\w+)' => 'FeedHandler',
           '/' => 'MainHandler',
       ]);
-      return $app;
+      return $app->psgi_app;
 
     And now run it with:
 
-      plackup -s AnyEvent -a app.psgi
+      plackup -s Twiggy app.psgi
 
 WARNINGS
     This is considered as alpha quality software. Most of the stuff are
@@ -96,12 +96,11 @@ PSGI COMPATIBILITY
     supports "psgi.nonblocking" (and "psgi.streaming") as well.
 
     Currently Tatsumaki asynchronous application is supposed to run on
-    Tatsumaki::Server, Plack::Server::AnyEvent, Plack::Server::Coro and
-    Plack::Server::POE.
+    Twiggy, Feersum, Corona and POE::Component::Server::PSGI.
 
     If "asynchronous" is not used, your application is supposed to run in
     any PSGI standard environments, including blocking multiprocess
-    environments like mod_perl2 and prefork.
+    environments like Starman or Starlet.
 
 TATSUMAKI?
     Tatsumaki is a Japanese for Tornado. Also, it might sound familiar from

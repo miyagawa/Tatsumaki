@@ -80,11 +80,11 @@ Tatsumaki - Non-blocking web framework based on Plack and AnyEvent
       '/feed/(\w+)' => 'FeedHandler',
       '/' => 'MainHandler',
   ]);
-  return $app;
+  return $app->psgi_app;
 
 And now run it with:
 
-  plackup -s AnyEvent -a app.psgi
+  plackup -s Twiggy app.psgi
 
 =head1 WARNINGS
 
@@ -114,12 +114,11 @@ application does server push with C<stream_write>, you need a server
 that supports C<psgi.nonblocking> (and C<psgi.streaming>) as well.
 
 Currently Tatsumaki asynchronous application is supposed to run on
-Tatsumaki::Server, Plack::Server::AnyEvent, Plack::Server::Coro and
-Plack::Server::POE.
+L<Twiggy>, L<Feersum>, L<Corona> and L<POE::Component::Server::PSGI>.
 
 If C<asynchronous> is not used, your application is supposed to run in
 any PSGI standard environments, including blocking multiprocess
-environments like mod_perl2 and prefork.
+environments like L<Starman> or L<Starlet>.
 
 =head1 TATSUMAKI?
 
