@@ -1,5 +1,8 @@
 Revision history for Perl extension Tatsumaki
 
+0.1012  Sun Feb 13 20:01:46 PST 2011
+        - No code changes. Updated terribly outdated Tatsumaki.pm POD
+
 0.1011  Tue Dec 21 11:49:49 PST 2010
         - Fixed to use $r->parameters to make it work with newer Plack::Request
         - Fixed MessageQueue leak when long-poll client immediately reconnects after disconnection (mash)
