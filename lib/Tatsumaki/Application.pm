@@ -52,7 +52,7 @@ sub dispatch {
     for my $rule (@{$self->_rules}) {
         if ($path =~ $rule->{path}) {
             my $args = [ $1, $2, $3, $4, $5, $6, $7, $8, $9 ];
-            return $rule->{handler}->new(@_, application => $self, request => $req, args => $args);
+            return $rule->{handler}->new(application => $self, request => $req, args => $args);
         }
     }
 
