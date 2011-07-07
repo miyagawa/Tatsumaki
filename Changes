@@ -1,5 +1,9 @@
 Revision history for Perl extension Tatsumaki
 
+0.1013  Thu Jul  7 11:49:18 PDT 2011
+        - Added $self->binary(1) in Handler classes to indicate binary responses (gbarr, mateu)
+        - Allow $self->json to be set to customize the way JSON is encoded (ask)
+
 0.1012  Sun Feb 13 20:01:46 PST 2011
         - No code changes. Updated terribly outdated Tatsumaki.pm POD
 
