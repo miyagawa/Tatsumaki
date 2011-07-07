@@ -18,6 +18,7 @@ has writer   => (is => 'rw');
 has mxhr     => (is => 'rw', isa => 'Bool');
 has mxhr_boundary => (is => 'rw', isa => 'Str', lazy => 1, lazy_build => 1);
 has json     => (is => 'rw', isa => 'JSON', lazy => 1, default => sub { JSON->new->utf8 });
+has binary   => (is => 'rw', isa => 'Bool');
 
 has _write_buffer => (is => 'rw', isa => 'ArrayRef', lazy => 1, default => sub { [] });
 
@@ -172,6 +173,8 @@ sub get_chunk {
             $self->response->content_type('application/json');
             return $self->json->encode($_[0]);
         }
+    } elsif ($self->binary) {
+        join '', @_;
     } else {
         join '', map Encode::encode_utf8($_), @_;
     }
