@@ -1,5 +1,7 @@
 Revision history for Perl extension Tatsumaki
 
+        - Allow more than 9 captures in path regexes (plu)
+
 0.1013  Thu Jul  7 11:49:18 PDT 2011
         - Added $self->binary(1) in Handler classes to indicate binary responses (gbarr, mateu)
         - Allow $self->json to be set to customize the way JSON is encoded (ask)
