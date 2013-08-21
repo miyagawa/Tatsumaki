@@ -3,13 +3,39 @@ use warnings;
 use Tatsumaki;
 use Tatsumaki::Error;
 use Tatsumaki::Application;
+use Tatsumaki::MessageQueue;
 use Time::HiRes;
+
+package ChatServerSentEventsHandler;
+use base qw(Tatsumaki::Handler);
+__PACKAGE__->asynchronous(1);
+
+sub get {
+    my($self, $channel) = @_;
+
+    my $client_id = $self->request->param('client_id') || rand(1);
+    my $mq = Tatsumaki::MessageQueue->instance($channel);
+
+    $self->server_sent_events_push(1);
+
+    $mq->poll($client_id, sub {
+        my @events = @_;
+        for my $event (@events) {
+            if ($event->{type} eq 'message') {
+                $self->stream_write({
+                    event => $event->{type},
+                    data  => $event
+                });
+            } else {
+                $self->stream_write({ data => $event });
+            }
+        }
+    });
+}
 
 package ChatPollHandler;
 use base qw(Tatsumaki::Handler);
 __PACKAGE__->asynchronous(1);
-
-use Tatsumaki::MessageQueue;
 
 sub get {
     my($self, $channel) = @_;
@@ -87,6 +113,7 @@ use File::Basename;
 
 my $chat_re = '[\w\.\-]+';
 my $app = Tatsumaki::Application->new([
+    "/chat/($chat_re)/sse" => 'ChatServerSentEventsHandler',
     "/chat/($chat_re)/poll" => 'ChatPollHandler',
     "/chat/($chat_re)/mxhrpoll" => 'ChatMultipartPollHandler',
     "/chat/($chat_re)/post" => 'ChatPostHandler',

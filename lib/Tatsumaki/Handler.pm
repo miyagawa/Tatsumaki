@@ -16,6 +16,7 @@ has response => (is => 'rw', isa => 'Tatsumaki::Response', lazy_build => 1);
 has args     => (is => 'rw', isa => 'ArrayRef');
 has writer   => (is => 'rw');
 has mxhr     => (is => 'rw', isa => 'Bool');
+has sse      => (is => 'rw', isa => 'Bool');
 has mxhr_boundary => (is => 'rw', isa => 'Str', lazy => 1, lazy_build => 1);
 has json     => (is => 'rw', isa => 'JSON', lazy => 1, default => sub { JSON->new->utf8 });
 has binary   => (is => 'rw', isa => 'Bool');
@@ -43,6 +44,21 @@ sub asynchronous {
 }
 
 sub nonblocking { shift->asynchronous(@_) } # alias
+
+sub server_sent_events_push {
+    my ($self, $enable) = @_;
+    if ($enable) {
+        Carp::croak("asynchronous should be set to do Server-Sent Events push")
+            unless $self->is_asynchronous;
+
+        $self->response->content_type('text/event-stream');
+        $self->flush;
+
+        return $self->sse(1);
+    } else {
+        return $self->sse;
+    }
+}
 
 sub multipart_xhr_push {
     my $self = shift;
@@ -169,6 +185,22 @@ sub get_chunk {
         if ($self->mxhr) {
             my $json = $self->json->encode($_[0]);
             return "Content-Type: application/json\n\n$json\n--" . $self->mxhr_boundary. "\n";
+        } elsif ($self->sse) {
+            $self->response->content_type('text/event-stream');
+            my $data = ref $_[0]->{data}
+                ? $self->json->encode($_[0]->{data})
+                : defined $_[0]->{data}
+                    ? $_[0]->{data}
+                    : "";
+
+            if (defined $_[0]->{event}) { # TODO: `id` and `retry` and comment line
+                return join "\n",
+                    "event: " . $_[0]->{event},
+                    "data: "  . $data,
+                    "\n";
+            } else {
+                return "data: $data\n\n";
+            }
         } else {
             $self->response->content_type('application/json');
             return $self->json->encode($_[0]);
