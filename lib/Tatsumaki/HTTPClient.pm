@@ -1,5 +1,6 @@
 package Tatsumaki::HTTPClient;
 use strict;
+use warnings;
 use AnyEvent::HTTP ();
 use HTTP::Request::Common ();
 use HTTP::Request;

@@ -1,5 +1,6 @@
 package Tatsumaki::MessageQueue;
 use strict;
+use warnings;
 
 use AnyEvent;
 use Any::Moose;
