@@ -1,4 +1,7 @@
 package Tatsumaki::Request;
+use strict;
+use warnings;
+
 use Encode;
 use parent qw(Plack::Request);
 

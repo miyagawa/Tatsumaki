@@ -1,5 +1,6 @@
 package Tatsumaki::Error;
 use strict;
+use warnings;
 use Any::Moose;
 
 sub throw {

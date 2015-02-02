@@ -1,4 +1,6 @@
 package Tatsumaki::Application;
+use strict;
+use warnings;
 use AnyEvent;
 use Any::Moose;
 use Tatsumaki::Handler;
