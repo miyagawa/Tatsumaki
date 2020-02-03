@@ -1,5 +1,5 @@
 package Tatsumaki::Template;
-use Any::Moose;
+use Moose;
 
 sub render_file;
 sub include_path;

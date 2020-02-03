@@ -1,6 +1,6 @@
 package Tatsumaki::Application;
 use AnyEvent;
-use Any::Moose;
+use Moose;
 use Tatsumaki::Handler;
 use Tatsumaki::Request;
 use Try::Tiny;
@@ -141,7 +141,7 @@ sub _service_name_for {
     return $name;
 }
 
-no Any::Moose;
+no Moose;
 __PACKAGE__->meta->make_immutable;
 
 1;

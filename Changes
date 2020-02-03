@@ -1,5 +1,6 @@
 Revision history for Perl extension Tatsumaki
 
+        - use Moose instead. Any::Moose is deprecated. (gugod)
         - Allow more than 9 captures in path regexes (plu)
 
 0.1013  Thu Jul  7 11:49:18 PDT 2011

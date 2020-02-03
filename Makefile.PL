@@ -4,7 +4,7 @@ all_from 'lib/Tatsumaki.pm';
 readme_from 'lib/Tatsumaki.pm';
 requires 'AnyEvent', '5.2';
 requires 'AnyEvent::HTTP';
-requires 'Any::Moose';
+requires 'Moose';
 requires 'Mouse', 0.34;
 requires 'Plack', 0.9913;
 requires 'Twiggy';
