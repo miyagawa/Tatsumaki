@@ -1,5 +1,5 @@
 package Tatsumaki::Service;
-use Any::Moose;
+use Moose;
 
 has application => (is => 'rw', isa => 'Tatsumaki::Application', weak_ref => 1);
 

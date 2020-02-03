@@ -1,6 +1,6 @@
 package Tatsumaki::Error;
 use strict;
-use Any::Moose;
+use Moose;
 
 sub throw {
     my($class, @rest) = @_;
@@ -8,11 +8,11 @@ sub throw {
 }
 
 package Tatsumaki::Error::ClientDisconnect;
-use Any::Moose;
+use Moose;
 extends 'Tatsumaki::Error';
 
 package Tatsumaki::Error::HTTP;
-use Any::Moose;
+use Moose;
 use HTTP::Status;
 extends 'Tatsumaki::Error';
 

@@ -5,7 +5,7 @@ use HTTP::Request::Common ();
 use HTTP::Request;
 use HTTP::Response;
 use Tatsumaki;
-use Any::Moose;
+use Moose;
 
 has timeout => (is => 'rw', isa => 'Int', default => sub { 30 });
 has agent   => (is => 'rw', isa => 'Str', default => sub { join "/", __PACKAGE__, $Tatsumaki::VERSION });
@@ -44,7 +44,7 @@ sub request {
     };
 }
 
-no Any::Moose;
+no Moose;
 __PACKAGE__->meta->make_immutable;
 
 1;

@@ -1,5 +1,5 @@
 package Tatsumaki::Template::Micro;
-use Any::Moose;
+use Moose;
 extends 'Tatsumaki::Template';
 
 use Text::MicroTemplate::File;

@@ -2,7 +2,7 @@ package Tatsumaki::MessageQueue;
 use strict;
 
 use AnyEvent;
-use Any::Moose;
+use Moose;
 use Try::Tiny;
 use Scalar::Util;
 use Time::HiRes;
