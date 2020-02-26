@@ -1,5 +1,6 @@
 % my $channel = $_[0]->{handler}->args->[0];
 % my $mxhr = $_[0]->{handler}->request->param('mxhr');
+% my $sse = $_[0]->{handler}->request->param('sse');
 <html>
 <head>
 <title>Tatsumaki Chat demo</title>
@@ -71,8 +72,18 @@ $(function(){
     });
     s.load('/chat/<%= $channel %>/mxhrpoll');
   } else {
+
+% if ($sse) {
+    var e = new EventSource("/chat/<%= $channel %>/sse");
+    e.addEventListener("message", function (payload) {
+        var data = JSON.parse(payload.data)
+        onNewEvent(data);
+    });
+% } else {
     $.ev.handlers.message = onNewEvent;
     $.ev.loop('/chat/<%= $channel %>/poll?client_id=' + Math.random());
+% }
+
   }
 
   if ($.cookie(cookieName))
